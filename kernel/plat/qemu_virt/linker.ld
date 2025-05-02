@@ -9,6 +9,7 @@ __mtime = 0x0200bff8;
 __mtimecmp = 0x02004000;
 
 __global_pointer$ = MIN(_sdata + 0x800, MAX(_data + 0x800, _end - 0x800));
+__stack_top = ORIGIN(RAM) + LENGTH(RAM);
 
 MEMORY {
 	RAM (rwx) : ORIGIN = 0x80000000, LENGTH = 64K

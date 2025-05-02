@@ -19,7 +19,6 @@ endif
 
 sources = files(
 	'src/head.S',
-	'src/stack.S',
 	'src/trap.S',
 	'src/cap/ipc.c',
 	'src/cap/monitor.c',

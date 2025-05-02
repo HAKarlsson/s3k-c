@@ -1,5 +1,4 @@
 // See LICENSE file for copyright and license details.
-#include "macro.inc"
 #include "offsets.h"
 
 .globl trap_entry
@@ -53,10 +52,13 @@ trap_entry:
 	sd	t1,PROC_PC(a0)
 	sd	t2,PROC_A0(a0)
 
-
-	// Load the global and stack pointer of the kernel.
-	ld_gp
-	ld_sp	t0
+	// Set up the global pointer.
+	.option push
+	.option norelax
+	la	t0,__global_pointer$
+	.option pop
+	// Set up the stack pointer.
+	la	sp,__stack_top
 
 	// call the trap handler
 	csrr	a1,mcause

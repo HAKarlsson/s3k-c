@@ -50,39 +50,39 @@ typedef enum {
 
 typedef enum {
 	// Basic Info & Registers
-	SYS_GET_INFO,  // Retrieve basic system information
-	SYS_REG_READ,  // Set the value of a specific register
-	SYS_REG_WRITE, // Get the value of a specific register
-	SYS_SYNC,      // Synchronize with capabilities/scheduling
-	SYS_SLEEP,
+	SYSCALL_GET_INFO,  // Retrieve basic system information
+	SYSCALL_REG_READ,  // Set the value of a specific register
+	SYSCALL_REG_WRITE, // Get the value of a specific register
+	SYSCALL_SYNC,      // Synchronize with capabilities/scheduling
+	SYSCALL_SLEEP,
 
 	// Capability Management
-	SYS_CAP_READ,	// Read the properties of a capability
-	SYS_CAP_MOVE,	// Move a capability to a different slot
-	SYS_CAP_DELETE, // Remove a capability from the system
-	SYS_CAP_REVOKE, // Revoke a derived capabilities
-	SYS_CAP_DERIVE, // Derive a new capability from an existing one
+	SYSCALL_CAP_READ,	// Read the properties of a capability
+	SYSCALL_CAP_MOVE,	// Move a capability to a different slot
+	SYSCALL_CAP_DELETE, // Remove a capability from the system
+	SYSCALL_CAP_REVOKE, // Revoke a derived capabilities
+	SYSCALL_CAP_DERIVE, // Derive a new capability from an existing one
 
 	// PMP
-	SYS_PMP_LOAD,
-	SYS_PMP_UNLOAD,
+	SYSCALL_PMP_LOAD,
+	SYSCALL_PMP_UNLOAD,
 
 	// Monitor
-	SYS_MON_SUSPEND,
-	SYS_MON_RESUME,
-	SYS_MON_STATE_GET,
-	SYS_MON_YIELD,
-	SYS_MON_REG_READ,
-	SYS_MON_REG_WRITE,
-	SYS_MON_CAP_READ,
-	SYS_MON_CAP_MOVE,
-	SYS_MON_PMP_LOAD,
-	SYS_MON_PMP_UNLOAD,
+	SYSCALL_MON_SUSPEND,
+	SYSCALL_MON_RESUME,
+	SYSCALL_MON_STATE_GET,
+	SYSCALL_MON_YIELD,
+	SYSCALL_MON_REG_READ,
+	SYSCALL_MON_REG_WRITE,
+	SYSCALL_MON_CAP_READ,
+	SYSCALL_MON_CAP_MOVE,
+	SYSCALL_MON_PMP_LOAD,
+	SYSCALL_MON_PMP_UNLOAD,
 
 	// Socket
-	SYS_SOCK_SEND,
-	SYS_SOCK_RECV,
-	SYS_SOCK_SENDRECV,
+	SYSCALL_SOCK_SEND,
+	SYSCALL_SOCK_RECV,
+	SYSCALL_SOCK_SENDRECV,
 } syscall_t;
 
 typedef union {

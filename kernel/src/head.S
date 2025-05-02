@@ -1,5 +1,4 @@
 // See LICENSE file for copyright and license details.
-#include "macro.inc"
 #include "offsets.h"
 #include "csr.h"
 
@@ -15,16 +14,17 @@
 .type _start, @function
 _start:
 head_entry:
-	// Load global pointer.
-	ld_gp
-	ld_sp	t1
+	// Set up the global pointer.
+	.option push
+	.option norelax
+	la	t0,__global_pointer$
+	.option pop
+	// Set up the stack pointer.
+	la	sp,__stack_top
 
-	// If hartid != MIN_HARTID, then jump to wait.
+	// If hartid != 0, then jump to __hang.
 	csrr	t0,mhartid
-	li	t1,S3K_MIN_HART
-	li	t2,S3K_MAX_HART
-	bltu	t0,t1,__hang
-	bgtu	t0,t2,__hang
+	bnez	t0,__hang
 
 	// Set some CSRs to 0.
 	csrw	mstatus,0
@@ -38,10 +38,6 @@ head_entry:
 	la	t0,__hang
 	csrw	mtvec,t0
 
-	csrr	t0,mhartid
-	li	t1,S3K_MIN_HART
-	bne	t0,t1,wait
-
 zero_bss:
 	// Initialize the bss section.
 	la	t0,_bss
@@ -52,15 +48,6 @@ zero_bss:
 2:	bne	t0,t1,1b
 
 	call	kernel_init
-
-	la	t0,kernel_ready
-	li	t1,1
-	sw	t1,(t0)
-
-wait:   // Wait for initilization to finish.
-	la	t0,kernel_ready
-	lw	t0,(t0)
-	beqz	t0,wait
 
 head_exit:
 	// Enable timer interrupts.
@@ -75,10 +62,5 @@ head_exit:
 	tail	sched
 
 __hang:
-	csrw	mie,0
 	wfi
 	j	__hang
-
-.section .data
-kernel_ready:
-	.word 0

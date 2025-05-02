@@ -25,10 +25,6 @@ struct sched_decision {
 
 static uint64_t slots[S3K_SLOT_CNT];
 
-#ifdef SMP
-static semaphore_t sched_semaphore;
-#endif
-
 void sched_init(void)
 {
 	uint64_t pid = 0;
