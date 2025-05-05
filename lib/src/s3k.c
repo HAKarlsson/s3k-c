@@ -71,12 +71,11 @@ typedef struct {
 
 _Static_assert(sizeof(sys_args_t) == 64, "sys_args_t has the wrong size");
 
-s3k_cap_t s3k_mk_time(s3k_hart_t hart, s3k_time_slot_t bgn, s3k_time_slot_t end)
+s3k_cap_t s3k_mk_time(s3k_time_slot_t bgn, s3k_time_slot_t end)
 {
 	return (s3k_cap_t){
 	    .time = {
 		     .type = S3K_CAPTY_TIME,
-		     .hart = hart,
 		     .bgn = bgn,
 		     .mrk = bgn,
 		     .end = end,
@@ -192,7 +191,7 @@ s3k_addr_t s3k_tag_block_to_addr(s3k_tag_t tag, s3k_block_t block)
 
 static bool s3k_cap_time_revokable(s3k_cap_t p, s3k_cap_t c)
 {
-	return (c.type == S3K_CAPTY_TIME) && (p.time.hart == c.time.hart)
+	return (c.type == S3K_CAPTY_TIME) 
 	       && is_range_subset(p.time.bgn, p.time.end, c.time.bgn,
 				  c.time.end);
 }
@@ -277,7 +276,7 @@ bool s3k_cap_is_valid(s3k_cap_t c)
 
 static bool s3k_cap_time_derivable(s3k_cap_t p, s3k_cap_t c)
 {
-	return (c.type == S3K_CAPTY_TIME) && (p.time.hart == c.time.hart)
+	return (c.type == S3K_CAPTY_TIME)
 	       && is_range_prefix(p.time.bgn, p.time.end, c.time.bgn,
 				  c.time.end);
 }

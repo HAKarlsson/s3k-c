@@ -2,10 +2,9 @@
 
 #define UART_BASE_ADDR (0x10000000ul)
 
-#define BOOT_PMP 0
-#define RAM_MEM 1
-#define UART_MEM 2
-#define TIME_MEM 3
-#define HART0_TIME 4
-#define MONITOR 5
-#define CHANNEL 6
+#define CAP_BOOT 0
+#define CAP_RAM 1
+#define CAP_UART 2
+#define CAP_TIME 3
+#define CAP_MONITOR 4
+#define CAP_CHANNEL 5

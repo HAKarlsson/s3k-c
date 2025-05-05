@@ -1,7 +1,7 @@
 #pragma once
 #include "s3k/types.h"
 
-s3k_cap_t s3k_mk_time(s3k_hart_t hart, s3k_time_slot_t bgn,
+s3k_cap_t s3k_mk_time(s3k_time_slot_t bgn,
 		      s3k_time_slot_t end);
 s3k_cap_t s3k_mk_memory(s3k_addr_t bgn, s3k_addr_t end, s3k_rwx_t rwx);
 s3k_cap_t s3k_mk_pmp(s3k_napot_t napot_addr, s3k_rwx_t rwx);

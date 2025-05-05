@@ -1,8 +1,10 @@
-#include "altc/altio.h"
-#include "s3k/s3k.h"
+#include "serio.h"
+#include "s3k.h"
 
 int main(void)
 {
-	alt_puts("hello, world from app1");
-	alt_puts("bye from app1");
+	while (1) {
+		serio_putstr("Hello from app1!\n");
+		s3k_sleep(0);
+	}
 }
