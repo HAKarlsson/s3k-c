@@ -44,12 +44,10 @@ def revoke_memory(ks: kstate, parent: u32) : kstate =
     then
       let ks = Ctable::delete(ks, child) in
       let ks =
-        if (Cap::pmp_get_used(ccap)) then
-          let ks = Kernel::vreg_write(ks, 0U, true as u64) in
-          let ks = Kernel::vreg_write(ks, 1U, cap_pid(child) as u64) in
-          Kernel::vreg_write(ks, 2U, Cap::pmp_get_slot(ccap))
+        if Cap::pmp_get_used(ccap) then
+          Ptable::pmp_unload(ks, cap_pid(child), Cap::pmp_get_slot(ccap) as u32)
         else
-          Kernel::vreg_write(ks, 0U, false as u64)
+          ks
       in
       ks.errcode <- Error::CONTINUE
     else
@@ -95,11 +93,9 @@ def delete_pmp(ks: kstate, cid: u32) : kstate =
   let cap = ks.ctable[cid] in
   let ks =
     if Cap::pmp_get_used(cap) then
-      let ks = Kernel::vreg_write(ks, 0U, true as u64) in
-      let ks = Kernel::vreg_write(ks, 1U, cap_pid(cid) as u64) in
-      Kernel::vreg_write(ks, 2U, Cap::pmp_get_slot(cap))
+      Ptable::pmp_unload(ks, cap_pid(cid), Cap::pmp_get_slot(cap) as u32)
     else
-      Kernel::vreg_write(ks, 0U, false as u64)
+      ks
   in
     let ks = Ctable::delete(ks, cid) in
     ks.errcode <- Error::SUCCESS

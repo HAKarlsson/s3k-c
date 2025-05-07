@@ -65,8 +65,8 @@ kernel_br = files(
 	'brc/kernel.br',
 	'brc/sched.br',
 	'brc/ctable.br',
-	'brc/cap_ops.br',
 	'brc/ptable.br',
+	'brc/cap_ops.br',
 	'brc/pmp.br',
 	'brc/monitor.br',
 )

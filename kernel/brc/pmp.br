@@ -3,7 +3,7 @@ module Pmp
 type kstate = Kernel::state
 
 def load(ks: kstate, cid: u32, slot: Types::pmp_slot_t) : kstate =
-  let pid = Cap_ops::cap_pid(cid) as u32 in
+  let pid = Cap_ops::cap_pid(cid) in
   let cap = ks.ctable[cid] in
   let cap_type = Cap::get_type(cap) in
   if cap_type == Cap::CAPTY_NONE then
@@ -20,7 +20,7 @@ def load(ks: kstate, cid: u32, slot: Types::pmp_slot_t) : kstate =
     ks.errcode <- Error::SUCCESS
 
 def unload(ks: kstate, cid: u32) : kstate =
-  let pid = Cap_ops::cap_pid(cid) as u32 in
+  let pid = Cap_ops::cap_pid(cid) in
   let cap = ks.ctable[cid] in
   let cap_type = Cap::get_type(cap) in
   if cap_type == Cap::CAPTY_NONE then
