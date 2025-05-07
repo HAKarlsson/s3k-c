@@ -72,7 +72,7 @@ err_t cap_monitor_yield(cte_t mon, pid_t pid, proc_t **next)
 err_t cap_monitor_reg_read(cte_t mon, pid_t pid, word_t reg, word_t *val)
 {
 	err_t err = check_monitor(mon, pid, true);
-	word_t *regs = (word_t *)&proc_get(pid)->regs;
+	word_t *regs = (word_t *)&proc_get(pid)->pc;
 	if (!err)
 		*val = regs[reg];
 	return err;
@@ -81,7 +81,7 @@ err_t cap_monitor_reg_read(cte_t mon, pid_t pid, word_t reg, word_t *val)
 err_t cap_monitor_reg_write(cte_t mon, pid_t pid, word_t reg, word_t val)
 {
 	err_t err = check_monitor(mon, pid, true);
-	word_t *regs = (word_t *)&proc_get(pid)->regs;
+	word_t *regs = (word_t *)&proc_get(pid)->pc;
 	if (!err)
 		regs[reg] = val;
 	return err;

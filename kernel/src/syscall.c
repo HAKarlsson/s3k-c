@@ -32,7 +32,7 @@ static bool _valid_pid(pid_t pid)
 
 static bool _valid_reg(word_t reg)
 {
-	size_t reg_count = sizeof(regs_t) / sizeof(word_t);
+	size_t reg_count = 32;
 	return reg < reg_count;
 }
 
@@ -40,41 +40,41 @@ proc_t *_get_info(proc_t *const p, const sys_args_t *args)
 {
 	switch (args->get_info.info) {
 	case 0:
-		p->regs.a0 = p->pid;
+		p->a0 = p->pid;
 		break;
 	case 1:
-		p->regs.a0 = rtc_time_get();
+		p->a0 = rtc_time_get();
 		break;
 	case 2:
-		p->regs.a0 = rtc_timeout_get(csrr_mhartid());
+		p->a0 = rtc_timeout_get(csrr_mhartid());
 		break;
 	default:
-		p->regs.a0 = 0;
+		p->a0 = 0;
 	}
-	p->regs.t0 = SUCCESS;
+	p->t0 = SUCCESS;
 	return p;
 }
 
 proc_t *_reg_read(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_reg(args->reg_read.reg)) {
-		p->regs.t0 = ERR_INVALID_REGISTER;
+		p->t0 = ERR_INVALID_REGISTER;
 		return p;
 	}
-	p->regs.t0 = SUCCESS;
-	word_t *regs = (word_t *)&p->regs;
-	p->regs.a0 = regs[args->reg_read.reg];
+	p->t0 = SUCCESS;
+	word_t *regs = (word_t *)&p->pc;
+	p->a0 = regs[args->reg_read.reg];
 	return p;
 }
 
 proc_t *_reg_write(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_reg(args->reg_write.reg)) {
-		p->regs.t0 = ERR_INVALID_REGISTER;
+		p->t0 = ERR_INVALID_REGISTER;
 		return p;
 	}
-	p->regs.t0 = SUCCESS;
-	word_t *regs = (word_t *)&p->regs;
+	p->t0 = SUCCESS;
+	word_t *regs = (word_t *)&p->pc;
 	regs[args->reg_write.reg] = args->reg_write.val;
 	return p;
 }
@@ -96,11 +96,11 @@ proc_t *_sleep(proc_t *const p, const sys_args_t *args)
 proc_t *_cap_read(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->cap_read.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t c = ctable_get(p->pid, args->cap_read.idx);
-	p->regs.t0 = cap_read(c, (cap_t *)&p->regs.a0);
+	p->t0 = cap_read(c, (cap_t *)&p->a0);
 	return p;
 }
 
@@ -108,53 +108,53 @@ proc_t *_cap_move(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->cap_move.src_idx)
 	    || !_valid_idx(args->cap_move.dst_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t src = ctable_get(p->pid, args->cap_move.src_idx);
 	cte_t dst = ctable_get(p->pid, args->cap_move.dst_idx);
-	p->regs.t0 = cap_move(src, dst);
+	p->t0 = cap_move(src, dst);
 	return p;
 }
 
 proc_t *_cap_delete(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->cap_delete.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t c = ctable_get(p->pid, args->cap_delete.idx);
-	p->regs.t0 = cap_delete(c);
+	p->t0 = cap_delete(c);
 	return p;
 }
 
 proc_t *_cap_revoke(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->cap_revoke.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t c = ctable_get(p->pid, args->cap_revoke.idx);
 
-	p->regs.t0 = cap_revoke(c);
-	return p->regs.t0 == ERR_PREEMPTED ? (proc_t *)NULL : p;
+	p->t0 = cap_revoke(c);
+	return p->t0 == ERR_PREEMPTED ? (proc_t *)NULL : p;
 }
 
 proc_t *_cap_derive(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->cap_derive.src_idx)
 	    || !_valid_idx(args->cap_derive.dst_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cap_t cap = {.raw = args->cap_derive.cap_raw};
 	if (!cap_is_valid(&cap)) {
-		p->regs.t0 = ERR_INVALID_DERIVATION;
+		p->t0 = ERR_INVALID_DERIVATION;
 		return p;
 	}
 	cte_t src = ctable_get(p->pid, args->cap_derive.src_idx);
 	cte_t dst = ctable_get(p->pid, args->cap_derive.dst_idx);
-	p->regs.t0 = cap_derive(src, dst, &cap);
+	p->t0 = cap_derive(src, dst, &cap);
 	return p;
 }
 
@@ -162,123 +162,124 @@ proc_t *_pmp_load(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->pmp_load.idx)
 	    || !_valid_slot(args->pmp_load.slot)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t pmp = ctable_get(p->pid, args->pmp_load.idx);
-	p->regs.t0 = cap_pmp_load(pmp, args->pmp_load.slot);
+	p->t0 = cap_pmp_load(pmp, args->pmp_load.slot);
 	return p;
 }
 
 proc_t *_pmp_unload(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->pmp_unload.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t pmp = ctable_get(p->pid, args->pmp_unload.idx);
-	p->regs.t0 = cap_pmp_unload(pmp);
+	p->t0 = cap_pmp_unload(pmp);
 	return p;
 }
 
 proc_t *_mon_suspend(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_state.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_state.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs.t0 = cap_monitor_suspend(mon, args->mon_state.pid);
+	p->t0 = cap_monitor_suspend(mon, args->mon_state.pid);
 	return p;
 }
 
 proc_t *_mon_resume(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_state.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_state.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs.t0 = cap_monitor_resume(mon, args->mon_state.pid);
+	p->t0 = cap_monitor_resume(mon, args->mon_state.pid);
 	return p;
 }
 
 proc_t *_mon_state_get(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_state.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_state.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
-	p->regs.t0 = cap_monitor_state_get(mon, args->mon_state.pid,
-					   (proc_state_t *)&p->regs.a0);
+	p->t0 = cap_monitor_state_get(mon, args->mon_state.pid,
+					   (proc_state_t *)&p->a0);
 	return p;
 }
 
 proc_t *_mon_yield(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_state.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_state.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
 	proc_t *next = p;
-	p->regs.t0 = cap_monitor_yield(mon, args->mon_state.pid, &next);
+	p->t0 = cap_monitor_yield(mon, args->mon_state.pid, &next);
 	return next;
 }
 
 proc_t *_mon_reg_read(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_reg_read.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_reg_read.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_reg(args->mon_reg_read.reg)) {
-		p->regs.t0 = ERR_INVALID_REGISTER;
+		p->t0 = ERR_INVALID_REGISTER;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_reg_read.mon_idx);
-	p->regs.t0 = cap_monitor_reg_read(mon, args->mon_reg_read.pid,
-					  args->mon_reg_read.reg, &p->regs.a0);
+	word_t *a0 = (word_t*)(&p->a0);
+	p->t0 = cap_monitor_reg_read(mon, args->mon_reg_read.pid,
+					  args->mon_reg_read.reg, a0);
 	return p;
 }
 
 proc_t *_mon_reg_write(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_reg_write.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_reg_write.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_reg(args->mon_reg_write.reg)) {
-		p->regs.t0 = ERR_INVALID_REGISTER;
+		p->t0 = ERR_INVALID_REGISTER;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_reg_write.mon_idx);
-	p->regs.t0 = cap_monitor_reg_write(mon, args->mon_reg_write.pid,
+	p->t0 = cap_monitor_reg_write(mon, args->mon_reg_write.pid,
 					   args->mon_reg_write.reg,
 					   args->mon_reg_write.val);
 	return p;
@@ -287,43 +288,43 @@ proc_t *_mon_reg_write(proc_t *const p, const sys_args_t *args)
 proc_t *_mon_cap_read(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_cap_read.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_cap_read.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_idx(args->mon_cap_read.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_cap_read.mon_idx);
 	cte_t src = ctable_get(args->mon_cap_read.pid, args->mon_cap_read.idx);
-	p->regs.t0 = cap_monitor_cap_read(mon, src, (cap_t *)&p->regs.a0);
+	p->t0 = cap_monitor_cap_read(mon, src, (cap_t *)&p->a0);
 	return p;
 }
 
 proc_t *_mon_cap_move(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_cap_move.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_cap_move.src_pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_idx(args->mon_cap_move.src_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_cap_move.dst_pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_idx(args->mon_cap_move.dst_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_cap_move.mon_idx);
@@ -331,63 +332,63 @@ proc_t *_mon_cap_move(proc_t *const p, const sys_args_t *args)
 			       args->mon_cap_move.src_idx);
 	cte_t dst = ctable_get(args->mon_cap_move.dst_pid,
 			       args->mon_cap_move.dst_idx);
-	p->regs.t0 = cap_monitor_cap_move(mon, src, dst);
+	p->t0 = cap_monitor_cap_move(mon, src, dst);
 	return p;
 }
 
 proc_t *_mon_pmp_load(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_pmp_load.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_pmp_load.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_idx(args->mon_pmp_load.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_slot(args->mon_pmp_load.slot)) {
-		p->regs.t0 = ERR_INVALID_SLOT;
+		p->t0 = ERR_INVALID_SLOT;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_pmp_load.mon_idx);
 	cte_t pmp = ctable_get(args->mon_pmp_load.pid, args->mon_pmp_load.idx);
-	p->regs.t0 = cap_monitor_pmp_load(mon, pmp, args->mon_pmp_load.slot);
+	p->t0 = cap_monitor_pmp_load(mon, pmp, args->mon_pmp_load.slot);
 	return p;
 }
 
 proc_t *_mon_pmp_unload(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->mon_pmp_unload.mon_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_pid(args->mon_pmp_unload.pid)) {
-		p->regs.t0 = ERR_INVALID_PID;
+		p->t0 = ERR_INVALID_PID;
 		return p;
 	}
 	if (!_valid_idx(args->mon_pmp_unload.idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_pmp_unload.mon_idx);
 	cte_t pmp
 	    = ctable_get(args->mon_pmp_unload.pid, args->mon_pmp_unload.idx);
-	p->regs.t0 = cap_monitor_pmp_unload(mon, pmp);
+	p->t0 = cap_monitor_pmp_unload(mon, pmp);
 	return p;
 }
 
 proc_t *_sock_send(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->sock.sock_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_idx(args->sock.cap_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t sock = ctable_get(p->pid, args->sock.sock_idx);
@@ -398,35 +399,35 @@ proc_t *_sock_send(proc_t *const p, const sys_args_t *args)
 		     args->sock.data[3]},
 	};
 	proc_t *next = p;
-	p->regs.t0 = cap_sock_send(sock, &msg, &next);
+	p->t0 = cap_sock_send(sock, &msg, &next);
 	return next;
 }
 
 proc_t *_sock_recv(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->sock.sock_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_idx(args->sock.cap_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t sock = ctable_get(p->pid, args->sock.sock_idx);
 	cte_t cap_buf = ctable_get(p->pid, args->sock.cap_idx);
 	proc_t *next = p;
-	p->regs.t0 = cap_sock_recv(sock, cap_buf, &next);
+	p->t0 = cap_sock_recv(sock, cap_buf, &next);
 	return next;
 }
 
 proc_t *_sock_sendrecv(proc_t *const p, const sys_args_t *args)
 {
 	if (!_valid_idx(args->sock.sock_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	if (!_valid_idx(args->sock.cap_idx)) {
-		p->regs.t0 = ERR_INVALID_INDEX;
+		p->t0 = ERR_INVALID_INDEX;
 		return p;
 	}
 	cte_t sock = ctable_get(p->pid, args->sock.sock_idx);
@@ -437,17 +438,17 @@ proc_t *_sock_sendrecv(proc_t *const p, const sys_args_t *args)
 		     args->sock.data[3]},
 	};
 	proc_t *next = p;
-	p->regs.t0 = cap_sock_sendrecv(sock, &msg, &next);
+	p->t0 = cap_sock_sendrecv(sock, &msg, &next);
 	return next;
 }
 
 proc_t *syscall_handler(proc_t *proc)
 {
 	// System call arguments.
-	const sys_args_t *args = (sys_args_t *)&proc->regs.a0;
-	uint64_t call = proc->regs.t0;
+	const sys_args_t *args = (sys_args_t *)&proc->a0;
+	uint64_t call = proc->t0;
 
-	proc->regs.pc += 4;
+	proc->pc += 4;
 
 	switch (call) {
 	case SYSCALL_GET_INFO:
@@ -501,7 +502,7 @@ proc_t *syscall_handler(proc_t *proc)
 	case SYSCALL_SOCK_SENDRECV:
 		return _sock_sendrecv(proc, args);
 	default:
-		proc->regs.t0 = ERR_INVALID_SYSCALL;
+		proc->t0 = ERR_INVALID_SYSCALL;
 		return proc;
 	}
 }

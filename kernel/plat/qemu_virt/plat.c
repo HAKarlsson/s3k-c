@@ -27,8 +27,10 @@ void kernel_init(void)
 	sched_init();
 	kputs("# Initialize processes");
 	proc_init(0x80010000);
-	kputs("# Load INIT PMP");
-	cap_pmp_load(ctable_get(0, 0), 0); }
+	kputs("# Load INIT PMP 1");
+	cap_pmp_load(ctable_get(0, 0), 0);
+	kputs("# Load INIT PMP 2");
+}
 
 void kputc(char c)
 {

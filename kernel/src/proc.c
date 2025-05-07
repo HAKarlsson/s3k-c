@@ -6,6 +6,8 @@
 #include "kassert.h"
 #include "rtc.h"
 
+static uint32_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
+static uint64_t _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
 static proc_t procs[S3K_PROC_CNT];
 
 void proc_init(word_t payload)
@@ -13,9 +15,11 @@ void proc_init(word_t payload)
 	for (uint64_t i = 0; i < S3K_PROC_CNT; i++) {
 		procs[i].pid = i;
 		procs[i].state = PSF_SUSPENDED;
+		procs[i].pmpcfg = _pmpcfg[i];
+		procs[i].pmpaddr = (long long unsigned int*)_pmpaddr[i];
 	}
 	procs[0].state = 0;
-	procs[0].regs.pc = (word_t)payload;
+	procs[0].pc = (word_t)payload;
 }
 
 proc_t *proc_get(pid_t pid)
@@ -60,7 +64,7 @@ void proc_suspend(proc_t *proc)
 
 	if (prev & PSF_BLOCKED) {
 		proc->state = PSF_SUSPENDED;
-		proc->regs.t0 = ERR_SUSPENDED;
+		proc->t0 = ERR_SUSPENDED;
 	}
 }
 
@@ -97,29 +101,34 @@ bool proc_is_suspended(proc_t *proc)
 
 bool proc_pmp_avail(proc_t *proc, pmp_slot_t slot)
 {
-	return proc->pmp.cfg[slot] == 0;
+	return proc->pmpcfg[slot] == 0;
 }
 
 void proc_pmp_load(proc_t *proc, pmp_slot_t slot, pmp_slot_t rwx, napot_t addr)
 {
-	proc->pmp.cfg[slot] = (uint8_t)(rwx | 0x18);
-	proc->pmp.addr[slot] = addr;
+	proc->pmpcfg[slot] = rwx | 0x18;
+	proc->pmpaddr[slot] = addr;
 }
 
 void proc_pmp_unload(proc_t *proc, pmp_slot_t slot)
 {
-	proc->pmp.cfg[slot] = 0;
+	proc->pmpcfg[slot] = 0;
 }
 
-void proc_pmp_sync(proc_t *proc)
+proc_t* proc_pmp_sync(proc_t *proc)
 {
-	csrw_pmpaddr0(proc->pmp.addr[0]);
-	csrw_pmpaddr1(proc->pmp.addr[1]);
-	csrw_pmpaddr2(proc->pmp.addr[2]);
-	csrw_pmpaddr3(proc->pmp.addr[3]);
-	csrw_pmpaddr4(proc->pmp.addr[4]);
-	csrw_pmpaddr5(proc->pmp.addr[5]);
-	csrw_pmpaddr6(proc->pmp.addr[6]);
-	csrw_pmpaddr7(proc->pmp.addr[7]);
-	csrw_pmpcfg0(*(uint64_t *)proc->pmp.cfg);
+	csrw_pmpaddr0(proc->pmpaddr[0]);
+	csrw_pmpaddr1(proc->pmpaddr[1]);
+	csrw_pmpaddr2(proc->pmpaddr[2]);
+	csrw_pmpaddr3(proc->pmpaddr[3]);
+	csrw_pmpaddr4(proc->pmpaddr[4]);
+	csrw_pmpaddr5(proc->pmpaddr[5]);
+	csrw_pmpaddr6(proc->pmpaddr[6]);
+	csrw_pmpaddr7(proc->pmpaddr[7]);
+	uint64_t pmpcfg = 0;
+	for (int i = 0; i < S3K_PMP_CNT; i++) {
+		pmpcfg |= (uint64_t)proc->pmpcfg[i] << (i * 8);
+	}
+	csrw_pmpcfg0(pmpcfg);
+	return proc;
 }

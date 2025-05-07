@@ -41,23 +41,23 @@ static err_t do_send(const cap_t *cap, const ipc_msg_t *msg, proc_t **next)
 		if (!recv)
 			return ERR_NO_RECEIVER;
 		if (cap->sock.mode == IPC_YIELD
-		    && curr_time + recv->regs.servtime >= timeout)
+		    && curr_time + recv->servtime >= timeout)
 			return ERR_NO_RECEIVER;
 	}
 
 	if (proc_ipc_acquire(recv, cap->sock.chan)) {
-		recv->regs.t0 = SUCCESS;
-		recv->regs.a0 = cap->sock.tag;
-		recv->regs.a2 = msg->data[0];
-		recv->regs.a3 = msg->data[1];
-		recv->regs.a4 = msg->data[2];
-		recv->regs.a5 = msg->data[3];
+		recv->t0 = SUCCESS;
+		recv->a0 = cap->sock.tag;
+		recv->a2 = msg->data[0];
+		recv->a3 = msg->data[1];
+		recv->a4 = msg->data[2];
+		recv->a5 = msg->data[3];
 
 		if (msg->send_cap) {
 			cap_move(msg->cap_buf, cap_buf);
-			cte_cap(cap_buf, (cap_t *)&recv->regs.a1);
+			cte_cap(cap_buf, (cap_t *)&recv->a1);
 		} else {
-			recv->regs.a1 = 0;
+			recv->a1 = 0;
 		}
 
 		if (cap->sock.mode == IPC_YIELD) {

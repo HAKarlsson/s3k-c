@@ -38,10 +38,6 @@ sources = files(
 	platdir / 'plat.c',
 )
 
-include_directories = include_directories(
-	'include',
-)
-
 c_args = [
 	'-ffreestanding',
 	'-include', platdir / 'config.h',
@@ -81,6 +77,12 @@ kernel_c = custom_target(
 		'-o', '@OUTPUT0@',
 		'-gen-header',
 	],
+)
+
+message(kernel_c[1].full_path())
+include_directories = include_directories(
+	'include',
+	meson.current_build_dir(),
 )
 
 elf = executable('s3k.elf',
