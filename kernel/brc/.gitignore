@@ -1,1 +1,4 @@
 test
+*.bnf
+*.imp1
+*.aliasing
