@@ -14,3 +14,4 @@ compile_commands.json
 .cache
 _old
 _build
+.vscode
