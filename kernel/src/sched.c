@@ -22,6 +22,8 @@ struct sched_decision {
 	uint64_t end_time;
 };
 
+extern struct Kernel_state ks;
+
 static uint64_t slots[S3K_SLOT_CNT];
 
 void sched_init(void)
@@ -31,23 +33,38 @@ void sched_init(void)
 	uint64_t from = 0;
 	uint64_t to = S3K_SLOT_CNT;
 
+	ks.tslots = (u64 *)slots;
+
 	sched_update(pid, end, from, to);
+}
+
+struct Kernel_state *Sched_update(struct Kernel_state *ks, u64 pid, u64 end,
+				  u64 from, u64 to)
+{
+	u64 mask = 0xFFFFull;
+	for (u64 i = from; i < to; i++) {
+		ks->tslots[i] &= ~mask;
+		ks->tslots[i] |= ((pid << 8) | (end - i));
+	}
+	return ks;
+}
+
+struct Kernel_state *Sched_delete(struct Kernel_state *ks, u64 from, u64 to)
+{
+	u64 mask = 0xFFFFull;
+	for (u64 i = from; i < to; ++i)
+		ks->tslots[i] &= ~mask;
+	return ks;
 }
 
 void sched_update(uint64_t pid, uint64_t end, uint64_t from, uint64_t to)
 {
-	uint64_t mask = 0xFFFFull;
-	for (uint64_t i = from; i < to; i++) {
-		slots[i] &= ~mask;
-		slots[i] |= ((pid << 8) | (end - i));
-	}
+	Sched_update(&ks, pid, end, from, to);
 }
 
 void sched_delete(uint64_t from, uint64_t to)
 {
-	uint64_t mask = 0xFFFFull;
-	for (uint64_t i = from; i < to; ++i)
-		slots[i] &= ~mask;
+	Sched_delete(&ks, from, to);
 }
 
 static void slot_info_get(uint64_t slot, slot_info_t *si)
@@ -94,6 +111,7 @@ proc_t *sched(void)
 
 	do {
 		slot = rtc_time_get() / S3K_SLOT_LEN;
+
 		while (rtc_time_get() < slot * S3K_SLOT_LEN)
 			;
 		// Try schedule process

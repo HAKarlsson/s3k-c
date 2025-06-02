@@ -2,3 +2,6 @@ test
 *.bnf
 *.imp1
 *.aliasing
+*.dot
+*.png
+*.c

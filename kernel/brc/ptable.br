@@ -2,19 +2,36 @@ module Ptable
 
 type kstate = Kernel::state
 
-defn set_proc_t0(ks: kstate, pid: Types::pid_t, v: Types::word_t) : kstate =
+defn proc_reg_write(ks: kstate, pid: Types::pid_t, reg: u64, val: Types::word_t) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
-  let proc = proc.t0 <- v in
+  let proc =
+    if reg == Proc::REG_PC then
+      proc.pc <- val
+    else if reg == Proc::REG_RA then
+      proc.sp <- val
+    else if reg == Proc::REG_SP then
+      proc.sp <- val
+    else if reg == Proc::REG_GP then
+      proc.gp <- val
+    else if reg == Proc::REG_TP then
+      proc.tp <- val
+    else if reg == Proc::REG_T0 then
+      proc.t0 <- val
+    else if reg == Proc::REG_A0 then
+      proc.a0 <- val
+    else
+      proc
+  in
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 
-defn acquire(ks: kstate, time: u64, pid: Types::pid_t) : kstate =
+defn acquire(ks: kstate, pid: Types::pid_t) : kstate =
   let expected = ks.ptable[pid].state in
   let desired = Proc::PSF_BUSY in
   if (expected & (Proc::PSF_BUSY | Proc::PSF_SUSPENDED)) as bool then
     Kernel::vreg_write(ks, 0UL, false as u64)
-  else if time < ks.ptable[pid].timeout then
+  else if Machine::time_read(ks.mc) < ks.ptable[pid].timeout then
     Kernel::vreg_write(ks, 0UL, false as u64)
   else
     let ptable = ks.ptable in
@@ -54,3 +71,18 @@ defn pmp_unload(ks: kstate, pid: Types::pid_t, slot: Types::pmp_slot_t) : kstate
   let proc = Proc::pmp_unload(ks.ptable[pid], slot) in
   let ptable = ks.ptable[pid] <- proc in
   ks.ptable <- ptable
+
+defn proc_reg_read(ks: kstate, pid: Types::pid_t, reg: u64) : Types::word_t =
+  let proc = ks.ptable[pid] in
+  if reg == Proc::REG_PC then
+    proc.pc
+  else if reg == Proc::REG_RA then
+    proc.ra
+  else if reg == Proc::REG_SP then
+    proc.sp
+  else if reg == Proc::REG_GP then
+    proc.gp
+  else if reg == Proc::REG_TP then
+    proc.tp
+  else
+    0UL

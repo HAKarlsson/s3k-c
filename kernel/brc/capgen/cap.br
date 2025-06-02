@@ -22,18 +22,14 @@ defn mk_none() : u64 =
   CAPTY_NONE
 
 (* time capability *)
-defn mk_time(hart: u64, bgn: u64, mrk: u64, end: u64) : u64 =
-  CAPTY_TIME | end << 48UL | mrk << 32UL | bgn << 16UL | hart << 8UL
-defn time_get_hart(cap: cap_t) : u64 =
-  (cap >> 8UL) & 0xffUL
+defn mk_time(bgn: u64, mrk: u64, end: u64) : u64 =
+  CAPTY_TIME | end << 48UL | mrk << 32UL | bgn << 16UL
 defn time_get_bgn(cap: cap_t) : u64 =
   (cap >> 16UL) & 0xffffUL
 defn time_get_mrk(cap: cap_t) : u64 =
   (cap >> 32UL) & 0xffffUL
 defn time_get_end(cap: cap_t) : u64 =
   (cap >> 48UL) & 0xffffUL
-defn time_set_hart(cap: cap_t, v: u64) : u64 =
-  (cap & ~0xff00UL) | (v << 8UL)
 defn time_set_bgn(cap: cap_t, v: u64) : u64 =
   (cap & ~0xffff0000UL) | (v << 16UL)
 defn time_set_mrk(cap: cap_t, v: u64) : u64 =
@@ -151,7 +147,7 @@ defn is_valid(cap: cap_t) : bool =
     && (memory_get_bgn(cap) < memory_get_end(cap))
     && (memory_get_mrk(cap) == memory_get_mrk(cap))
   else if cap_type == CAPTY_PMP then
-    pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
+    !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
   else if cap_type == CAPTY_MONITOR then
     (monitor_get_bgn(cap) < monitor_get_end(cap))
     && (monitor_get_bgn(cap) == monitor_get_mrk(cap))

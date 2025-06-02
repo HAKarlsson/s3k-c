@@ -1,8 +1,6 @@
 #include "cap/table.h"
 #include "proc.h"
 
-#include "kprint.h"
-
 err_t cap_pmp_load(cte_t pmp, pmp_slot_t slot)
 {
 	proc_t *proc = proc_get(cte_pid(pmp));

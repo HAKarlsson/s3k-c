@@ -10,8 +10,8 @@
  * @copyright MIT License
  */
 
+#include "libkernel.h"
 #include "types.h"
-#include "kernel_core.h"
 
 typedef struct Proc_proc_t proc_t;
 typedef word_t proc_state_t;
@@ -27,7 +27,7 @@ typedef enum {
  *
  * @note This function should be called only once during system startup.
  */
-void ks_proc_init(word_t payload);
+void proc_init(word_t payload);
 
 /**
  * @brief Gets the process corresponding to a given process ID.
@@ -50,4 +50,4 @@ bool proc_is_suspended(proc_t *proc);
 bool proc_pmp_avail(proc_t *proc, pmp_slot_t slot);
 void proc_pmp_load(proc_t *proc, pmp_slot_t slot, rwx_t cfg, napot_t addr);
 void proc_pmp_unload(proc_t *proc, pmp_slot_t slot);
-proc_t* proc_pmp_sync(proc_t *proc);
+proc_t *proc_pmp_sync(proc_t *proc);

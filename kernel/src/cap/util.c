@@ -1,7 +1,7 @@
 #include "cap/util.h"
-#
 
 #include "kassert.h"
+#include "libkernel.h"
 #include "pmp.h"
 
 void cap_mk_time(cap_t *cap, time_slot_t bgn, time_slot_t end)
@@ -131,5 +131,53 @@ bool cap_is_valid(const cap_t *cap)
 		       || (cap->sock.mode == IPC_NOYIELD);
 	default:
 		return false;
+	}
+}
+
+void Cap_print(u64 cap)
+{
+	switch (Cap_get_type(cap)) {
+	case CAPTY_NONE:
+		kprintf("NONE{}");
+		break;
+	case CAPTY_TIME:
+		kprintf("TIME{bgn=%U,end=%U,mrk=%U}", Cap_time_get_bgn(cap),
+			Cap_time_get_end(cap), Cap_time_get_mrk(cap));
+		break;
+	case CAPTY_MEMORY: {
+		uint64_t bgn = Cap_ops_tag_block_to_addr(
+		    Cap_memory_get_tag(cap), Cap_memory_get_bgn(cap));
+		uint64_t end = Cap_ops_tag_block_to_addr(
+		    Cap_memory_get_tag(cap), Cap_memory_get_end(cap));
+		uint64_t mrk = Cap_ops_tag_block_to_addr(
+		    Cap_memory_get_tag(cap), Cap_memory_get_mrk(cap));
+		kprintf("MEMORY{bgn=0x%X,end=0x%X,mrk=0x%X,rwx=%d,lck=%x}", bgn,
+			end, mrk, Cap_memory_get_rwx(cap),
+			Cap_memory_get_lck(cap));
+	} break;
+	case CAPTY_PMP: {
+		word_t pmp_base = pmp_napot_decode_base(Cap_pmp_get_addr(cap));
+		word_t pmp_size = pmp_napot_decode_size(Cap_pmp_get_addr(cap));
+		kprintf("PMP{bgn=0x%X,end=0x%X,rwx=%d,used=%d,slot=%d}",
+			pmp_base, pmp_base + pmp_size, Cap_pmp_get_rwx(cap),
+			Cap_pmp_get_used(cap), Cap_pmp_get_slot(cap));
+	} break;
+	case CAPTY_MONITOR:
+		kprintf("MONITOR{bgn=%U,end=%U,mrk=%U}",
+			Cap_monitor_get_bgn(cap), Cap_monitor_get_end(cap),
+			Cap_monitor_get_mrk(cap));
+		break;
+	case CAPTY_CHANNEL:
+		kprintf("CHANNEL{bgn=%U,end=%U,mrk=%U}",
+			Cap_channel_get_bgn(cap), Cap_channel_get_end(cap),
+			Cap_channel_get_mrk(cap));
+		break;
+	case CAPTY_SOCKET:
+		kprintf("SOCKET{chan=%U,tag=%U,perm=%U,mode=%U}",
+			Cap_socket_get_chan(cap), Cap_socket_get_tag(cap),
+			Cap_socket_get_perm(cap), Cap_socket_get_mode(cap));
+		break;
+	default:
+		kprintf("UNKNOWN{raw=0x%X}", cap);
 	}
 }

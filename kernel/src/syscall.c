@@ -8,12 +8,12 @@
 #include "cap/table.h"
 #include "cap/util.h"
 #include "csr.h"
+#include "kprint.h"
+#include "libkernel.h"
 #include "rtc.h"
 #include "sched.h"
 #include "trap.h"
 #include "types.h"
-#include "kprint.h"
-#include "kernel_core.h"
 
 #include <stdbool.h>
 
@@ -227,7 +227,7 @@ proc_t *_mon_state_get(proc_t *const p, const sys_args_t *args)
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_state.mon_idx);
 	p->t0 = cap_monitor_state_get(mon, args->mon_state.pid,
-					   (proc_state_t *)&p->a0);
+				      (proc_state_t *)&p->a0);
 	return p;
 }
 
@@ -262,9 +262,9 @@ proc_t *_mon_reg_read(proc_t *const p, const sys_args_t *args)
 		return p;
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_reg_read.mon_idx);
-	word_t *a0 = (word_t*)(&p->a0);
+	word_t *a0 = (word_t *)(&p->a0);
 	p->t0 = cap_monitor_reg_read(mon, args->mon_reg_read.pid,
-					  args->mon_reg_read.reg, a0);
+				     args->mon_reg_read.reg, a0);
 	return p;
 }
 
@@ -284,8 +284,8 @@ proc_t *_mon_reg_write(proc_t *const p, const sys_args_t *args)
 	}
 	cte_t mon = ctable_get(p->pid, args->mon_reg_write.mon_idx);
 	p->t0 = cap_monitor_reg_write(mon, args->mon_reg_write.pid,
-					   args->mon_reg_write.reg,
-					   args->mon_reg_write.val);
+				      args->mon_reg_write.reg,
+				      args->mon_reg_write.val);
 	return p;
 }
 
@@ -448,40 +448,122 @@ proc_t *_sock_sendrecv(proc_t *const p, const sys_args_t *args)
 
 proc_t *_br_cap_read(proc_t *const p, const sys_args_t *args)
 {
-	struct Kernel_state *ks1 = Syscall_cap_read(&ks, p->pid, args->cap_read.idx);
-	return ks1->ptable[p->pid];
+	Syscall_cap_read(&ks, p->pid, args->cap_read.idx);
+	return p;
 }
 
 proc_t *_br_cap_move(proc_t *const p, const sys_args_t *args)
 {
-	struct Kernel_state *ks1 = Syscall_cap_move(&ks, p->pid, args->cap_move.src_idx, args->cap_move.dst_idx);
-	return ks1->ptable[p->pid];
+	Syscall_cap_move(&ks, p->pid, args->cap_move.src_idx,
+			 args->cap_move.dst_idx);
+	return p;
 }
 
 proc_t *_br_cap_delete(proc_t *const p, const sys_args_t *args)
 {
-	struct Kernel_state *ks1 = Syscall_cap_delete(&ks, p->pid, args->cap_delete.idx);
-	return ks1->ptable[p->pid];
+	Syscall_cap_delete(&ks, p->pid, args->cap_delete.idx);
+	return p;
 }
 
 proc_t *_br_cap_derive(proc_t *const p, const sys_args_t *args)
 {
-	kprintf("KERNEL_SYS_BR_CAP_DERIVE\n");
-	struct Kernel_state *ks1 = Syscall_cap_derive(&ks, p->pid, args->cap_derive.src_idx, args->cap_derive.dst_idx, args->cap_derive.cap_raw);
-	return ks1->ptable[p-> pid];
+	Syscall_cap_derive(&ks, p->pid, args->cap_derive.src_idx,
+			   args->cap_derive.dst_idx, args->cap_derive.cap_raw);
+	return p;
+}
+
+proc_t *_br_cap_revoke(proc_t *const p, const sys_args_t *args)
+{
+	return p->t0 == ERR_PREEMPTED ? (proc_t *)NULL : p;
 }
 
 proc_t *_br_pmp_load(proc_t *const p, const sys_args_t *args)
 {
-	kprintf("KERNEL_SYS_BR_PMP_LOAD\n");
-	struct Kernel_state *ks1 = Syscall_pmp_load(&ks, p->pid, args->pmp_load.idx, args->pmp_load.slot);
-	return ks1->ptable[p->pid];
+	Syscall_pmp_load(&ks, p->pid, args->pmp_load.idx, args->pmp_load.slot);
+	return p;
 }
 
 proc_t *_br_pmp_unload(proc_t *const p, const sys_args_t *args)
 {
-	struct Kernel_state *ks1 = Syscall_pmp_unload(&ks, p->pid, args->pmp_unload.idx);
-	return ks1->ptable[p->pid];
+	Syscall_pmp_unload(&ks, p->pid, args->pmp_unload.idx);
+	return p;
+}
+
+proc_t *_br_mon_suspend(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_suspend(&ks, p->pid, args->mon_state.mon_idx,
+			    args->mon_state.pid);
+	return p;
+}
+
+proc_t *_br_mon_resume(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_resume(&ks, p->pid, args->mon_state.mon_idx,
+			   args->mon_state.pid);
+	return p;
+}
+
+proc_t *_br_mon_state_get(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_state_get(&ks, p->pid, args->mon_state.mon_idx,
+			      args->mon_state.pid);
+	return p;
+}
+
+proc_t *_br_mon_yield(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_yield(&ks, p->pid, args->mon_state.mon_idx,
+			  args->mon_state.pid);
+	proc_t *next = ks.ptable[Kernel_vreg_read(&ks, 0)];
+	return next;
+}
+
+proc_t *_br_mon_reg_read(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_reg_read(&ks, p->pid, args->mon_reg_read.mon_idx,
+			     args->mon_reg_read.pid, args->mon_reg_read.reg);
+	return p;
+}
+
+proc_t *_br_mon_reg_write(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_reg_write(&ks, p->pid, args->mon_reg_write.mon_idx,
+			      args->mon_reg_write.pid, args->mon_reg_write.reg,
+			      args->mon_reg_write.val);
+	return p;
+}
+
+proc_t *_br_mon_cap_read(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_cap_read(&ks, p->pid, args->mon_cap_read.mon_idx,
+			     args->mon_cap_read.pid, args->mon_cap_read.idx);
+	return p;
+}
+
+proc_t *_br_mon_cap_move(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_cap_move(&ks, p->pid, args->mon_cap_move.mon_idx,
+			     args->mon_cap_move.src_pid,
+			     args->mon_cap_move.src_idx,
+			     args->mon_cap_move.dst_pid,
+			     args->mon_cap_move.dst_idx);
+	return p;
+}
+
+proc_t *_br_mon_pmp_load(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_pmp_load(&ks, p->pid, args->mon_pmp_load.mon_idx,
+			     args->mon_pmp_load.pid, args->mon_pmp_load.idx,
+			     args->mon_pmp_load.slot);
+	return p;
+}
+
+proc_t *_br_mon_pmp_unload(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_mon_pmp_unload(&ks, p->pid, args->mon_pmp_unload.mon_idx,
+			       args->mon_pmp_unload.pid,
+			       args->mon_pmp_unload.idx);
+	return p;
 }
 
 proc_t *syscall_handler(proc_t *proc)
@@ -551,10 +633,32 @@ proc_t *syscall_handler(proc_t *proc)
 		return _br_cap_delete(proc, args);
 	case BR_SYSCALL_CAP_DERIVE:
 		return _br_cap_derive(proc, args);
+	case BR_SYSCALL_CAP_REVOKE:
+		return _br_cap_revoke(proc, args);
 	case BR_SYSCALL_PMP_LOAD:
 		return _br_pmp_load(proc, args);
 	case BR_SYSCALL_PMP_UNLOAD:
 		return _br_pmp_unload(proc, args);
+	case BR_SYSCALL_MON_SUSPEND:
+		return _br_mon_suspend(proc, args);
+	case BR_SYSCALL_MON_RESUME:
+		return _br_mon_resume(proc, args);
+	case BR_SYSCALL_MON_STATE_GET:
+		return _br_mon_state_get(proc, args);
+	case BR_SYSCALL_MON_YIELD:
+		return _br_mon_yield(proc, args);
+	case BR_SYSCALL_MON_REG_READ:
+		return _br_mon_reg_read(proc, args);
+	case BR_SYSCALL_MON_REG_WRITE:
+		return _br_mon_reg_write(proc, args);
+	case BR_SYSCALL_MON_CAP_READ:
+		return _br_mon_cap_read(proc, args);
+	case BR_SYSCALL_MON_CAP_MOVE:
+		return _br_mon_cap_move(proc, args);
+	case BR_SYSCALL_MON_PMP_LOAD:
+		return _br_mon_pmp_load(proc, args);
+	case BR_SYSCALL_MON_PMP_UNLOAD:
+		return _br_mon_pmp_unload(proc, args);
 	default:
 		proc->t0 = ERR_INVALID_SYSCALL;
 		return proc;

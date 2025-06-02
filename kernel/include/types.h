@@ -84,12 +84,28 @@ typedef enum {
 	SYSCALL_SOCK_RECV,
 	SYSCALL_SOCK_SENDRECV,
 
+	// Barocq capability management
 	BR_SYSCALL_CAP_READ,
 	BR_SYSCALL_CAP_MOVE,
 	BR_SYSCALL_CAP_DELETE,
 	BR_SYSCALL_CAP_DERIVE,
+	BR_SYSCALL_CAP_REVOKE,
+
+	// Barocq pmp calls
 	BR_SYSCALL_PMP_LOAD,
 	BR_SYSCALL_PMP_UNLOAD,
+
+	// Barocq monitor calls
+	BR_SYSCALL_MON_SUSPEND,
+	BR_SYSCALL_MON_RESUME,
+	BR_SYSCALL_MON_STATE_GET,
+	BR_SYSCALL_MON_YIELD,
+	BR_SYSCALL_MON_REG_READ,
+	BR_SYSCALL_MON_REG_WRITE,
+	BR_SYSCALL_MON_CAP_READ,
+	BR_SYSCALL_MON_CAP_MOVE,
+	BR_SYSCALL_MON_PMP_LOAD,
+	BR_SYSCALL_MON_PMP_UNLOAD,
 } syscall_t;
 
 typedef union {
@@ -265,11 +281,10 @@ typedef union cap {
 
 	struct {
 		capty_t type : 4;
-		uint16_t padding: 16;
 		rwx_t rwx : 3;
 		bool used : 1;
 		pmp_slot_t slot;
-		uint32_t addr : 32;
+		uint64_t addr : 48;
 	} pmp;
 
 	struct {

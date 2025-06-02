@@ -14,7 +14,7 @@ defn load(ks: kstate, cidx: u64, slot: Types::pmp_slot_t) : kstate =
     ks.errcode <- Error::DST_OCCUPIED
   else
     let ks = Ptable::pmp_load(ks, pid, slot, Cap::pmp_get_rwx(cap), Cap::pmp_get_addr(cap)) in
-    let cap = Cap::pmp_set_slot(cap, slot as u64) in
+    let cap = Cap::pmp_set_slot(cap, slot) in
     let cap = Cap::pmp_set_used(cap, true) in
     let ks = Ctable::set_cap(ks, cidx, cap) in
     ks.errcode <- Error::SUCCESS
@@ -30,7 +30,7 @@ defn unload(ks: kstate, cidx: u64) : kstate =
   else
     let ks = Ptable::pmp_unload(ks, pid, Cap::pmp_get_slot(cap)) in
     let cap = Cap::pmp_set_slot(cap, 0UL) in
-    let cap = Cap::pmp_set_used(cap, true) in
+    let cap = Cap::pmp_set_used(cap, false) in
     let ks = Ctable::set_cap(ks, pid, cap) in
     ks.errcode <- Error::SUCCESS
   

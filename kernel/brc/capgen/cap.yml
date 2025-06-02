@@ -5,8 +5,7 @@ capabilities:
       pad: 60
   - name: time 
     fields:
-      pad: 4
-      hart: 8
+      pad: 12
       bgn: 16
       mrk: 16
       end: 16

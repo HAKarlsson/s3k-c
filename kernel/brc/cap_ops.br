@@ -106,7 +106,7 @@ defn delete_pmp(ks: kstate, cidx: u64) : kstate =
     let ks = Ctable::delete(ks, cidx) in
     ks.errcode <- Error::SUCCESS
 
-defn revoke_pmp(ks: kstate) : kstate =
+defn revoke_pmp(ks: kstate, parent: u64) : kstate =
   ks.errcode <- Error::SUCCESS
 
 defn derive_pmp(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
@@ -155,7 +155,7 @@ defn revoke_time(ks: kstate, parent: u64)  : kstate =
 defn derive_time(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
   let cap = ks.ctable[src] in
   if (Cap::get_type(ncap) == Cap::CAPTY_TIME)
-      && (Cap::time_get_bgn(ncap) <= Cap::time_get_mrk(cap))
+      && (Cap::time_get_bgn(ncap) == Cap::time_get_mrk(cap))
       && (Cap::time_get_end(ncap) <= Cap::time_get_end(cap))
   then
     let ks =
@@ -195,7 +195,7 @@ defn revoke_monitor(ks: kstate, parent: u64) : kstate =
     let ks = Ctable::set_cap(ks, parent, pcap) in
     ks.errcode <- Error::SUCCESS
 
-defn cap_derive_monitor(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t)  : kstate =
+defn derive_monitor(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
   let cap = ks.ctable[src] in
   if (Cap::get_type(ncap) == Cap::CAPTY_MONITOR)
       && (Cap::monitor_get_mrk(cap) <= Cap::monitor_get_bgn(ncap))
@@ -207,6 +207,23 @@ defn cap_derive_monitor(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t)  : kst
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- Error::INVALID_DERIVATION
+
+defn ipc_move_hook(ks: kstate, src: u64, dst: u64) : kstate =
+  let cap = ks.ctable[src] in
+  let cap_type = Cap::get_type(cap) in
+  if cap_type == Cap::CAPTY_TIME then
+    Sched::update(ks, cap_pid(dst),
+                  Cap::time_get_end(cap),
+                  Cap::time_get_mrk(cap),
+                  Cap::time_get_end(cap))
+  else if (cap_type == Cap::CAPTY_PMP) && Cap::pmp_get_used(cap) then
+    let pid = cap_pid(src) in
+    let ks = Ptable::pmp_unload(ks, pid, Cap::pmp_get_slot(cap)) in
+    let cap = Cap::pmp_set_slot(cap, 0UL) in
+    let cap = Cap::pmp_set_used(cap, false) in
+    Ctable::set_cap(ks, pid, cap)
+  else
+    ks
       
 (* Capability operation dispatchers *)
 
@@ -224,6 +241,12 @@ defn move(ks: kstate, src: u64, dst: u64) : kstate =
   else if !(Ctable::is_empty_cap(ks, dst)) then
     ks.errcode <- Error::DST_OCCUPIED
   else
+    let ks =
+      if cap_pid(src) != cap_pid(dst) then
+      ipc_move_hook(ks, src, dst)
+    else
+      ks
+    in
     let ks = Ctable::move(ks, src, dst) in
     ks.errcode <- Error::SUCCESS
 
@@ -238,6 +261,8 @@ defn delete(ks: kstate, cidx: u64) : kstate =
       delete_pmp(ks, cidx)
     else if cap_type == Cap::CAPTY_TIME then
       delete_time(ks, cidx)
+    else if cap_type == Cap::CAPTY_MONITOR then
+      delete_monitor(ks, cidx)
     else
       ks.errcode <- Error::INVALID_CAPABILITY
 
@@ -254,5 +279,9 @@ defn derive(ks: kstate, src: u64, dst: u64, ncap: Cap::cap_t) : kstate =
       derive_pmp(ks, src, dst, ncap)
     else if cap_type == Cap::CAPTY_TIME then
       derive_time(ks, src, dst, ncap)
+    else if cap_type == Cap::CAPTY_MONITOR then
+      derive_monitor(ks, src, dst, ncap)
     else
       ks.errcode <- Error::INVALID_CAPABILITY
+
+decl revoke : (@write kstate, Cap::cap_t) -> kstate

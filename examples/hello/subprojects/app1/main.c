@@ -1,5 +1,5 @@
-#include "serio.h"
 #include "s3k.h"
+#include "serio.h"
 
 int main(void)
 {

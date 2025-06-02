@@ -11,6 +11,8 @@ type state = {
   tslots: array u64;
   (* Processes data *)
   ptable: array Proc::proc_t;
+  (* Machine state *)
+  mc: Machine::state;
   (* Return data *)
   vregs: array u64; 
   errcode: Error::err_t;
@@ -18,6 +20,7 @@ type state = {
 
 (* Kernel config *)
 
+defn S3K_PROC_CNT : u64 = 2UL
 defn S3K_CAP_CNT : u64 = 32UL
 defn S3K_PMP_CNT : u64 = 8UL
 

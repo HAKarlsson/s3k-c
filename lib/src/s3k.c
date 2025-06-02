@@ -191,7 +191,7 @@ s3k_addr_t s3k_tag_block_to_addr(s3k_tag_t tag, s3k_block_t block)
 
 static bool s3k_cap_time_revokable(s3k_cap_t p, s3k_cap_t c)
 {
-	return (c.type == S3K_CAPTY_TIME) 
+	return (c.type == S3K_CAPTY_TIME)
 	       && is_range_subset(p.time.bgn, p.time.end, c.time.bgn,
 				  c.time.end);
 }

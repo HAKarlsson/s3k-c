@@ -1,31 +1,32 @@
 /* See LICENSE file for copyright and license details. */
 #include "proc.h"
-#include "kernel_core.h"
+
 #include "cap/pmp.h"
 #include "csr.h"
 #include "kassert.h"
+#include "libkernel.h"
 #include "rtc.h"
 
 extern struct Kernel_state ks;
 
-static uint32_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
+static uint64_t _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
 static uint64_t _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
-static proc_t procs[S3K_PROC_CNT];
-static proc_t *_procs[S3K_PROC_CNT];
+static proc_t _procs[S3K_PROC_CNT];
+static proc_t *_ptable[S3K_PROC_CNT];
 
-void ks_proc_init(word_t payload)
+void proc_init(word_t payload)
 {
 	for (uint64_t i = 0; i < S3K_PROC_CNT; i++) {
-		procs[i].pid = i;
-		procs[i].state = PSF_SUSPENDED;
-		procs[i].pmpcfg = _pmpcfg[i];
-		procs[i].pmpaddr = (long long unsigned int*)_pmpaddr[i];
-		_procs[i] = &procs[i];
+		_procs[i].pid = i;
+		_procs[i].state = PSF_SUSPENDED;
+		_procs[i].pmpcfg = (u64 *)_pmpcfg[i];
+		_procs[i].pmpaddr = (u64 *)_pmpaddr[i];
+		_ptable[i] = &_procs[i];
 	}
-	procs[0].state = 0;
-	procs[0].pc = (word_t)payload;
+	_procs[0].state = 0;
+	_procs[0].pc = (word_t)payload;
 
-	ks.ptable = _procs;
+	ks.ptable = _ptable;
 }
 
 proc_t *proc_get(pid_t pid)
@@ -45,7 +46,7 @@ proc_state_t proc_get_state(proc_t *proc)
 
 bool proc_acquire(proc_t *proc)
 {
-	Ptable_acquire(&ks, rtc_time_get(), proc->pid);
+	Ptable_acquire(&ks, proc->pid);
 	return ks.vregs[0];
 }
 
@@ -103,8 +104,9 @@ void proc_pmp_unload(proc_t *proc, pmp_slot_t slot)
 	Ptable_pmp_unload(&ks, proc->pid, slot);
 }
 
-proc_t* proc_pmp_sync(proc_t *proc)
+proc_t *proc_pmp_sync(proc_t *proc)
 {
+	// kprintf("Resuming proc %d\n", proc->pid);
 	csrw_pmpaddr0(proc->pmpaddr[0]);
 	csrw_pmpaddr1(proc->pmpaddr[1]);
 	csrw_pmpaddr2(proc->pmpaddr[2]);

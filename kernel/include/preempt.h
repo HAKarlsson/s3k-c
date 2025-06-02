@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.h"
 #include "csr.h"
+#include "types.h"
 
 static inline bool preempt(void)
 {

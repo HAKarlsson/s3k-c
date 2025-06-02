@@ -2,12 +2,12 @@ module Monitor
 
 type kstate = Kernel::state
 
-defn check(ks: kstate, mon: u64, pid: Types::pid_t, check_suspended: bool) : Error::err_t =
-  let mcap = ks.ctable[mon] in
-  let mcap_type = Cap::get_type(mcap) in
-  if (mcap_type != Cap::CAPTY_MONITOR)
-      || (Cap::monitor_get_mrk(mcap) > pid)
-      || ((pid as u64) >= Cap::monitor_get_end(mcap))
+defn check(ks: kstate, midx: u64, pid: Types::pid_t, check_suspended: bool) : Error::err_t =
+  let mon = ks.ctable[midx] in
+  let mon_type = Cap::get_type(mon) in
+  if (mon_type != Cap::CAPTY_MONITOR)
+      || (Cap::monitor_get_mrk(mon) > pid)
+      || (pid >= Cap::monitor_get_end(mon))
   then
     Error::INVALID_MONITOR
   else if (check_suspended && !(Ptable::is_suspended(ks, pid))) then
@@ -15,23 +15,105 @@ defn check(ks: kstate, mon: u64, pid: Types::pid_t, check_suspended: bool) : Err
   else
     Error::SUCCESS
   
-defn check_move(ks: kstate, mon: u64, src: u64, dst: u64) : Error::err_t =
-  let mon_pid = Cap_ops::cap_pid(mon) in
+defn check_move(ks: kstate, midx: u64, src: u64, dst: u64) : Error::err_t =
+  let mon_pid = Cap_ops::cap_pid(midx) in
   let src_pid = Cap_ops::cap_pid(src) in
   let dst_pid = Cap_ops::cap_pid(dst) in
   let err =
-    if mon_pid != src_pid then check(ks, mon, src_pid, true)
+    if mon_pid != src_pid then check(ks, midx, src_pid, true)
     else Error::SUCCESS
   in
   if err == Error::SUCCESS then
-    if mon_pid != dst_pid then check(ks, mon, src_pid, true)
+    if mon_pid != dst_pid then check(ks, midx, dst_pid, true)
     else Error::SUCCESS
   else
     err
 
-defn cap_resume(ks: kstate, mon: u64, pid: Types::pid_t) : kstate =
-  let err = check(ks, mon, pid, false) in
+defn cap_suspend(ks: kstate, midx: Cap::cap_t, pid: Types::pid_t) : kstate =
+  let err = check(ks, midx, pid, false) in
+  if (err == Error::SUCCESS) then
+    let ks = Ptable::suspend(ks, pid) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_resume(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
+  let err = check(ks, midx, pid, false) in
   if err == Error::SUCCESS then
-    Ptable::resume(ks, pid)
+    let ks = Ptable::resume(ks, pid) in
+    ks.errcode <- Error::SUCCESS
+
+  else
+    ks.errcode <- err
+  
+defn cap_state_get(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
+  let err = check(ks, midx, pid, false) in
+  if err == Error::SUCCESS then
+    let ks = Kernel::vreg_write(ks, 0UL, ks.ptable[pid].state) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_yield(ks: kstate, midx: u64, pid: Types::pid_t) : kstate =
+  let err = check(ks, midx, pid, false) in
+  if err == Error::SUCCESS then
+    let ks = Ptable::acquire(ks, pid) in
+    if (Kernel::vreg_read(ks, 0UL) as bool) then
+      let ks = Kernel::vreg_write(ks, 0UL, pid) in
+      ks.errcode <- Error::SUCCESS
+    else
+      ks.errcode <- Error::INVALID_STATE
+  else
+    ks.errcode <- err
+
+defn cap_reg_read(ks: kstate, midx: u64, pid: Types::pid_t, reg: u64) : kstate =
+  let err = check(ks, midx, pid, true) in
+  if err == Error::SUCCESS then
+    let val = Ptable::proc_reg_read(ks, pid, reg) in
+    let ks = Kernel::vreg_write(ks, 0UL, val) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_reg_write(ks: kstate, midx: u64, pid: Types::pid_t, reg: u64, val: Types::word_t) : kstate =
+  let err = check(ks, midx, pid, true) in
+  if err == Error::SUCCESS then
+    let ks = Ptable::proc_reg_write(ks, pid, reg, val) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_read(ks: kstate, midx: u64, cidx: u64) : kstate =
+  let pid = Cap_ops::cap_pid(cidx) in
+  let err = check(ks, midx, pid, true) in
+  if err == Error::SUCCESS then
+    let ks = Cap_ops::read(ks, cidx) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_move(ks: kstate, midx: u64, src: u64, dst: u64) : kstate = 
+  let err = check_move(ks, midx, src, dst) in
+  if err == Error::SUCCESS then
+    let ks = Cap_ops::move(ks, src, dst) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_pmp_load(ks: kstate, midx: u64, cidx: u64, slot: Types::pmp_slot_t) : kstate =
+  let pid = Cap_ops::cap_pid(cidx) in
+  let err = check(ks, midx, pid, true) in
+  if err == Error::SUCCESS then
+    let ks = Pmp::load(ks, cidx, slot) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- err
+
+defn cap_pmp_unload(ks: kstate, midx: u64, cidx: u64) : kstate =
+  let pid = Cap_ops::cap_pid(cidx) in
+  let err = check(ks, midx, pid, true) in
+  if err == Error::SUCCESS then
+    let ks = Pmp::unload(ks, cidx) in
+    ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- err

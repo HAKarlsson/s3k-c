@@ -27,6 +27,14 @@ defn PSF_BUSY : u64 = 1UL
 defn PSF_BLOCKED : u64 = 2UL
 defn PSF_SUSPENDED : u64 = 4UL
 
+defn REG_PC : u64 = 0UL
+defn REG_RA : u64 = 1UL
+defn REG_SP : u64 = 2UL
+defn REG_GP : u64 = 3UL
+defn REG_TP : u64 = 4UL
+defn REG_T0 : u64 = 5UL
+defn REG_A0 : u64 = 10UL
+
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in
   let proc = proc.state <- (proc.state | PSF_SUSPENDED) in

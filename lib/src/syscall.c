@@ -36,12 +36,28 @@ typedef enum {
 	S3K_SYS_SOCK_RECV,
 	S3K_SYS_SOCK_SENDRECV,
 
+	// Barocq capability management
 	S3K_BR_SYS_CAP_READ,
 	S3K_BR_SYS_CAP_MOVE,
 	S3K_BR_SYS_CAP_DELETE,
 	S3K_BR_SYS_CAP_DERIVE,
+	S3K_BR_SYS_CAP_REVOKE,
+
+	// Barocq pmp calls
 	S3K_BR_SYS_PMP_LOAD,
 	S3K_BR_SYS_PMP_UNLOAD,
+
+	// Barocq monitor calls
+	S3K_BR_SYS_MON_SUSPEND,
+	S3K_BR_SYS_MON_RESUME,
+	S3K_BR_SYS_MON_STATE_GET,
+	S3K_BR_SYS_MON_YIELD,
+	S3K_BR_SYS_MON_REG_READ,
+	S3K_BR_SYS_MON_REG_WRITE,
+	S3K_BR_SYS_MON_CAP_READ,
+	S3K_BR_SYS_MON_CAP_MOVE,
+	S3K_BR_SYS_MON_PMP_LOAD,
+	S3K_BR_SYS_MON_PMP_UNLOAD,
 } s3k_syscall_t;
 
 typedef union {
@@ -273,166 +289,166 @@ void s3k_sleep(uint64_t time)
 	DO_ECALL(S3K_SYS_SLEEP, args, sizeof(args.sleep));
 }
 
-s3k_err_t s3k_cap_read(s3k_cidx_t idx, s3k_cap_t *cap)
-{
-	sys_args_t args = {.cap_read = {idx}};
-	s3k_ret_t ret = DO_ECALL(S3K_SYS_CAP_READ, args, sizeof(args.cap_read));
-	cap->raw = ret.val;
-	return ret.err;
-}
+// s3k_err_t s3k_cap_read(s3k_cidx_t idx, s3k_cap_t *cap)
+// {
+// 	sys_args_t args = {.cap_read = {idx}};
+// 	s3k_ret_t ret = DO_ECALL(S3K_SYS_CAP_READ, args, sizeof(args.cap_read));
+// 	cap->raw = ret.val;
+// 	return ret.err;
+// }
 
-s3k_err_t s3k_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_cap_move(src, dst);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_cap_move(src, dst);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_cap_delete(s3k_cidx_t idx)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_cap_delete(idx);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_cap_delete(s3k_cidx_t idx)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_cap_delete(idx);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_cap_revoke(s3k_cidx_t idx)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_cap_revoke(idx);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_cap_revoke(s3k_cidx_t idx)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_cap_revoke(idx);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_cap_derive(src, dst, ncap);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_cap_derive(src, dst, ncap);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_pmp_load(idx, slot);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_pmp_load(idx, slot);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_pmp_unload(s3k_cidx_t idx)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_pmp_unload(idx);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_pmp_unload(s3k_cidx_t idx)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_pmp_unload(idx);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_suspend(s3k_cidx_t mon_idx, s3k_pid_t pid)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_suspend(mon_idx, pid);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_suspend(s3k_cidx_t mon_idx, s3k_pid_t pid)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_suspend(mon_idx, pid);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_resume(s3k_cidx_t mon_idx, s3k_pid_t pid)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_resume(mon_idx, pid);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_resume(s3k_cidx_t mon_idx, s3k_pid_t pid)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_resume(mon_idx, pid);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_state_get(s3k_cidx_t mon_idx, s3k_pid_t pid,
-			    s3k_state_t *state)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_state_get(mon_idx, pid, state);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_state_get(s3k_cidx_t mon_idx, s3k_pid_t pid,
+// 			    s3k_state_t *state)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_state_get(mon_idx, pid, state);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_yield(s3k_cidx_t mon_idx, s3k_pid_t pid)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_yield(mon_idx, pid);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_yield(s3k_cidx_t mon_idx, s3k_pid_t pid)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_yield(mon_idx, pid);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_reg_read(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_reg_t reg,
-			   uint64_t *val)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_reg_read(mon_idx, pid, reg, val);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_reg_read(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_reg_t reg,
+// 			   uint64_t *val)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_reg_read(mon_idx, pid, reg, val);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_reg_write(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_reg_t reg,
-			    uint64_t val)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_reg_write(mon_idx, pid, reg, val);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_reg_write(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_reg_t reg,
+// 			    uint64_t val)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_reg_write(mon_idx, pid, reg, val);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_cap_read(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_cidx_t idx,
-			   s3k_cap_t *cap)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_cap_read(mon_idx, pid, idx, cap);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_cap_read(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_cidx_t idx,
+// 			   s3k_cap_t *cap)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_cap_read(mon_idx, pid, idx, cap);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_cap_move(s3k_cidx_t mon_idx, s3k_pid_t src_pid,
-			   s3k_cidx_t src_idx, s3k_pid_t dst_pid,
-			   s3k_cidx_t dst_idx)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_cap_move(mon_idx, src_pid, src_idx, dst_pid,
-					   dst_idx);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_cap_move(s3k_cidx_t mon_idx, s3k_pid_t src_pid,
+// 			   s3k_cidx_t src_idx, s3k_pid_t dst_pid,
+// 			   s3k_cidx_t dst_idx)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_cap_move(mon_idx, src_pid, src_idx, dst_pid,
+// 					   dst_idx);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
-			   s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_pmp_load(mon_idx, pid, pmp_idx, pmp_slot);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
+// 			   s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_pmp_load(mon_idx, pid, pmp_idx, pmp_slot);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_err_t s3k_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
-			     s3k_cidx_t pmp_idx)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_mon_pmp_unload(mon_idx, pid, pmp_idx);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
+// 			     s3k_cidx_t pmp_idx)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_mon_pmp_unload(mon_idx, pid, pmp_idx);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
 s3k_err_t s3k_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
 {
@@ -461,151 +477,151 @@ s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
 	return reply;
 }
 
-s3k_err_t s3k_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
-{
-	sys_args_t args = {
-	    .cap_move = {src, dst}
-	  };
-	return DO_ECALL(S3K_SYS_CAP_MOVE, args, sizeof(args.cap_move)).err;
-}
+// s3k_err_t s3k_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
+// {
+// 	sys_args_t args = {
+// 	    .cap_move = {src, dst}
+// 	  };
+// 	return DO_ECALL(S3K_SYS_CAP_MOVE, args, sizeof(args.cap_move)).err;
+// }
 
-s3k_err_t s3k_try_cap_delete(s3k_cidx_t idx)
-{
-	const sys_args_t args = {.cap_delete = {idx}};
-	return DO_ECALL(S3K_SYS_CAP_DELETE, args, sizeof(args.cap_delete)).err;
-}
+// s3k_err_t s3k_try_cap_delete(s3k_cidx_t idx)
+// {
+// 	const sys_args_t args = {.cap_delete = {idx}};
+// 	return DO_ECALL(S3K_SYS_CAP_DELETE, args, sizeof(args.cap_delete)).err;
+// }
 
-s3k_err_t s3k_try_cap_revoke(s3k_cidx_t idx)
-{
-	sys_args_t args = {.cap_revoke = {idx}};
-	return DO_ECALL(S3K_SYS_CAP_REVOKE, args, sizeof(args.cap_revoke)).err;
-}
+// s3k_err_t s3k_try_cap_revoke(s3k_cidx_t idx)
+// {
+// 	sys_args_t args = {.cap_revoke = {idx}};
+// 	return DO_ECALL(S3K_SYS_CAP_REVOKE, args, sizeof(args.cap_revoke)).err;
+// }
 
-s3k_err_t s3k_try_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
-{
-	sys_args_t args = {
-	    .cap_derive = {src, dst, ncap.raw}
-	      };
-	return DO_ECALL(S3K_SYS_CAP_DERIVE, args, sizeof(args.cap_derive)).err;
-}
+// s3k_err_t s3k_try_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
+// {
+// 	sys_args_t args = {
+// 	    .cap_derive = {src, dst, ncap.raw}
+// 	      };
+// 	return DO_ECALL(S3K_SYS_CAP_DERIVE, args, sizeof(args.cap_derive)).err;
+// }
 
-s3k_err_t s3k_try_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
-{
-	sys_args_t args = {
-	    .pmp_load = {idx, slot}
-	   };
-	return DO_ECALL(S3K_SYS_PMP_LOAD, args, sizeof(args.pmp_load)).err;
-}
+// s3k_err_t s3k_try_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
+// {
+// 	sys_args_t args = {
+// 	    .pmp_load = {idx, slot}
+// 	   };
+// 	return DO_ECALL(S3K_SYS_PMP_LOAD, args, sizeof(args.pmp_load)).err;
+// }
 
-s3k_err_t s3k_try_pmp_unload(s3k_cidx_t idx)
-{
-	sys_args_t args = {.pmp_unload = {idx}};
-	return DO_ECALL(S3K_SYS_PMP_UNLOAD, args, sizeof(args.pmp_unload)).err;
-}
+// s3k_err_t s3k_try_pmp_unload(s3k_cidx_t idx)
+// {
+// 	sys_args_t args = {.pmp_unload = {idx}};
+// 	return DO_ECALL(S3K_SYS_PMP_UNLOAD, args, sizeof(args.pmp_unload)).err;
+// }
 
-s3k_err_t s3k_try_mon_suspend(s3k_cidx_t mon, s3k_pid_t pid)
-{
-	sys_args_t args = {
-	    .mon_state = {mon, pid}
-	   };
-	return DO_ECALL(S3K_SYS_MON_SUSPEND, args, sizeof(args.mon_state)).err;
-}
+// s3k_err_t s3k_try_mon_suspend(s3k_cidx_t mon, s3k_pid_t pid)
+// {
+// 	sys_args_t args = {
+// 	    .mon_state = {mon, pid}
+// 	   };
+// 	return DO_ECALL(S3K_SYS_MON_SUSPEND, args, sizeof(args.mon_state)).err;
+// }
 
-s3k_err_t s3k_try_mon_resume(s3k_cidx_t mon, s3k_pid_t pid)
-{
-	sys_args_t args = {
-	    .mon_state = {mon, pid}
-	   };
-	return DO_ECALL(S3K_SYS_MON_RESUME, args, sizeof(args.mon_state)).err;
-}
+// s3k_err_t s3k_try_mon_resume(s3k_cidx_t mon, s3k_pid_t pid)
+// {
+// 	sys_args_t args = {
+// 	    .mon_state = {mon, pid}
+// 	   };
+// 	return DO_ECALL(S3K_SYS_MON_RESUME, args, sizeof(args.mon_state)).err;
+// }
 
-s3k_err_t s3k_try_mon_state_get(s3k_cidx_t mon, s3k_pid_t pid,
-				s3k_state_t *state)
-{
-	sys_args_t args = {
-	    .mon_state = {mon, pid}
-	   };
-	s3k_ret_t ret
-	    = DO_ECALL(S3K_SYS_MON_STATE_GET, args, sizeof(args.mon_state));
-	*state = ret.val;
-	return ret.err;
-}
+// s3k_err_t s3k_try_mon_state_get(s3k_cidx_t mon, s3k_pid_t pid,
+// 				s3k_state_t *state)
+// {
+// 	sys_args_t args = {
+// 	    .mon_state = {mon, pid}
+// 	   };
+// 	s3k_ret_t ret
+// 	    = DO_ECALL(S3K_SYS_MON_STATE_GET, args, sizeof(args.mon_state));
+// 	*state = ret.val;
+// 	return ret.err;
+// }
 
-s3k_err_t s3k_try_mon_yield(s3k_cidx_t mon, s3k_pid_t pid)
-{
-	sys_args_t args = {
-	    .mon_state = {mon, pid}
-	   };
-	return DO_ECALL(S3K_SYS_MON_YIELD, args, sizeof(args.mon_state)).err;
-}
+// s3k_err_t s3k_try_mon_yield(s3k_cidx_t mon, s3k_pid_t pid)
+// {
+// 	sys_args_t args = {
+// 	    .mon_state = {mon, pid}
+// 	   };
+// 	return DO_ECALL(S3K_SYS_MON_YIELD, args, sizeof(args.mon_state)).err;
+// }
 
-s3k_err_t s3k_try_mon_reg_read(s3k_cidx_t mon, s3k_pid_t pid, s3k_reg_t reg,
-			       uint64_t *val)
-{
-	sys_args_t args = {
-	    .mon_reg_read = {mon, pid, reg}
-	   };
-	s3k_ret_t ret
-	    = DO_ECALL(S3K_SYS_MON_REG_READ, args, sizeof(args.mon_reg_read));
-	*val = ret.val;
-	return ret.err;
-}
+// s3k_err_t s3k_try_mon_reg_read(s3k_cidx_t mon, s3k_pid_t pid, s3k_reg_t reg,
+// 			       uint64_t *val)
+// {
+// 	sys_args_t args = {
+// 	    .mon_reg_read = {mon, pid, reg}
+// 	   };
+// 	s3k_ret_t ret
+// 	    = DO_ECALL(S3K_SYS_MON_REG_READ, args, sizeof(args.mon_reg_read));
+// 	*val = ret.val;
+// 	return ret.err;
+// }
 
-s3k_err_t s3k_try_mon_reg_write(s3k_cidx_t mon, s3k_pid_t pid, s3k_reg_t reg,
-				uint64_t val)
-{
-	sys_args_t args = {
-	    .mon_reg_write = {mon, pid, reg, val}
-	 };
-	s3k_ret_t ret
-	    = DO_ECALL(S3K_SYS_MON_REG_WRITE, args, sizeof(args.mon_reg_write));
-	return ret.err;
-}
+// s3k_err_t s3k_try_mon_reg_write(s3k_cidx_t mon, s3k_pid_t pid, s3k_reg_t reg,
+// 				uint64_t val)
+// {
+// 	sys_args_t args = {
+// 	    .mon_reg_write = {mon, pid, reg, val}
+// 	 };
+// 	s3k_ret_t ret
+// 	    = DO_ECALL(S3K_SYS_MON_REG_WRITE, args, sizeof(args.mon_reg_write));
+// 	return ret.err;
+// }
 
-s3k_err_t s3k_try_mon_cap_read(s3k_cidx_t mon_idx, s3k_pid_t pid,
-			       s3k_cidx_t idx, s3k_cap_t *cap)
-{
-	sys_args_t args = {
-	    .mon_cap_read = {mon_idx, pid, idx}
-	       };
-	s3k_ret_t ret
-	    = DO_ECALL(S3K_SYS_MON_CAP_READ, args, sizeof(args.mon_cap_read));
-	if (!ret.err)
-		cap->raw = ret.val;
-	return ret.err;
-}
+// s3k_err_t s3k_try_mon_cap_read(s3k_cidx_t mon_idx, s3k_pid_t pid,
+// 			       s3k_cidx_t idx, s3k_cap_t *cap)
+// {
+// 	sys_args_t args = {
+// 	    .mon_cap_read = {mon_idx, pid, idx}
+// 	       };
+// 	s3k_ret_t ret
+// 	    = DO_ECALL(S3K_SYS_MON_CAP_READ, args, sizeof(args.mon_cap_read));
+// 	if (!ret.err)
+// 		cap->raw = ret.val;
+// 	return ret.err;
+// }
 
-s3k_err_t s3k_try_mon_cap_move(s3k_cidx_t mon_idx, s3k_pid_t src_pid,
-			       s3k_cidx_t src_idx, s3k_pid_t dst_pid,
-			       s3k_cidx_t dst_idx)
-{
-	sys_args_t args = {
-	    .mon_cap_move = {mon_idx, src_pid, src_idx, dst_pid, dst_idx}
-	 };
-	return DO_ECALL(S3K_SYS_MON_CAP_MOVE, args, sizeof(args.mon_cap_move))
-	    .err;
-}
+// s3k_err_t s3k_try_mon_cap_move(s3k_cidx_t mon_idx, s3k_pid_t src_pid,
+// 			       s3k_cidx_t src_idx, s3k_pid_t dst_pid,
+// 			       s3k_cidx_t dst_idx)
+// {
+// 	sys_args_t args = {
+// 	    .mon_cap_move = {mon_idx, src_pid, src_idx, dst_pid, dst_idx}
+// 	 };
+// 	return DO_ECALL(S3K_SYS_MON_CAP_MOVE, args, sizeof(args.mon_cap_move))
+// 	    .err;
+// }
 
-s3k_err_t s3k_try_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
-			       s3k_cidx_t idx, s3k_pmp_slot_t slot)
-{
-	sys_args_t args = {
-	    .mon_pmp_load = {mon_idx, pid, idx, slot}
-	     };
-	return DO_ECALL(S3K_SYS_MON_PMP_LOAD, args, sizeof(args.mon_pmp_load))
-	    .err;
-}
+// s3k_err_t s3k_try_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
+// 			       s3k_cidx_t idx, s3k_pmp_slot_t slot)
+// {
+// 	sys_args_t args = {
+// 	    .mon_pmp_load = {mon_idx, pid, idx, slot}
+// 	     };
+// 	return DO_ECALL(S3K_SYS_MON_PMP_LOAD, args, sizeof(args.mon_pmp_load))
+// 	    .err;
+// }
 
-s3k_err_t s3k_try_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
-				 s3k_cidx_t idx)
-{
-	sys_args_t args = {
-	    .mon_pmp_unload = {mon_idx, pid, idx}
-	 };
-	return DO_ECALL(S3K_SYS_MON_PMP_UNLOAD, args,
-			sizeof(args.mon_pmp_unload))
-	    .err;
-}
+// s3k_err_t s3k_try_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
+// 				 s3k_cidx_t idx)
+// {
+// 	sys_args_t args = {
+// 	    .mon_pmp_unload = {mon_idx, pid, idx}
+// 	 };
+// 	return DO_ECALL(S3K_SYS_MON_PMP_UNLOAD, args,
+// 			sizeof(args.mon_pmp_unload))
+// 	    .err;
+// }
 
 s3k_err_t s3k_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
 {
@@ -681,10 +697,13 @@ s3k_reply_t s3k_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
 
 // System calls to the Barocq implementation
 
+// Cap management ==========================================
+
 s3k_err_t s3k_br_cap_read(s3k_cidx_t idx, s3k_cap_t *cap)
 {
 	sys_args_t args = {.cap_read = {idx}};
-	s3k_ret_t ret = DO_ECALL(S3K_SYS_CAP_READ, args, sizeof(args.cap_read));
+	s3k_ret_t ret
+	    = DO_ECALL(S3K_BR_SYS_CAP_READ, args, sizeof(args.cap_read));
 	cap->raw = ret.val;
 	return ret.err;
 }
@@ -707,7 +726,6 @@ s3k_err_t s3k_br_cap_delete(s3k_cidx_t idx)
 	return err;
 }
 
-
 s3k_err_t s3k_br_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
 {
 	s3k_err_t err;
@@ -716,6 +734,17 @@ s3k_err_t s3k_br_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
 	} while (err == S3K_ERR_PREEMPTED);
 	return err;
 }
+
+s3k_err_t s3k_br_cap_revoke(s3k_cidx_t idx)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_cap_revoke(idx);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+// Pmp =====================================================
 
 s3k_err_t s3k_br_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
 {
@@ -735,6 +764,109 @@ s3k_err_t s3k_br_pmp_unload(s3k_cidx_t idx)
 	return err;
 }
 
+// Monitor =================================================
+
+s3k_err_t s3k_br_mon_suspend(s3k_cidx_t mon_idx, s3k_pid_t pid)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_suspend(mon_idx, pid);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_resume(s3k_cidx_t mon_idx, s3k_pid_t pid)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_resume(mon_idx, pid);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_state_get(s3k_cidx_t mon_idx, s3k_pid_t pid,
+			       s3k_state_t *state)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_state_get(mon_idx, pid, state);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_yield(s3k_cidx_t mon_idx, s3k_pid_t pid)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_yield(mon_idx, pid);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_reg_read(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_reg_t reg,
+			      uint64_t *val)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_reg_read(mon_idx, pid, reg, val);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_reg_write(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_reg_t reg,
+			       uint64_t val)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_reg_write(mon_idx, pid, reg, val);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_cap_read(s3k_cidx_t mon_idx, s3k_pid_t pid, s3k_cidx_t idx,
+			      s3k_cap_t *cap)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_cap_read(mon_idx, pid, idx, cap);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_cap_move(s3k_cidx_t mon_idx, s3k_pid_t src_pid,
+			      s3k_cidx_t src_idx, s3k_pid_t dst_pid,
+			      s3k_cidx_t dst_idx)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_cap_move(mon_idx, src_pid, src_idx,
+					      dst_pid, dst_idx);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
+			      s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_pmp_load(mon_idx, pid, pmp_idx, pmp_slot);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_err_t s3k_br_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
+				s3k_cidx_t pmp_idx)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_mon_pmp_unload(mon_idx, pid, pmp_idx);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+// TRY Cap management ======================================
+
 s3k_err_t s3k_br_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
 {
 	sys_args_t args = {
@@ -746,7 +878,8 @@ s3k_err_t s3k_br_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
 s3k_err_t s3k_br_try_cap_delete(s3k_cidx_t idx)
 {
 	const sys_args_t args = {.cap_delete = {idx}};
-	return DO_ECALL(S3K_BR_SYS_CAP_DELETE, args, sizeof(args.cap_delete)).err;
+	return DO_ECALL(S3K_BR_SYS_CAP_DELETE, args, sizeof(args.cap_delete))
+	    .err;
 }
 
 s3k_err_t s3k_br_try_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
@@ -754,8 +887,18 @@ s3k_err_t s3k_br_try_cap_derive(s3k_cidx_t src, s3k_cidx_t dst, s3k_cap_t ncap)
 	sys_args_t args = {
 	    .cap_derive = {src, dst, ncap.raw}
 	      };
-	return DO_ECALL(S3K_BR_SYS_CAP_DERIVE, args, sizeof(args.cap_derive)).err;
+	return DO_ECALL(S3K_BR_SYS_CAP_DERIVE, args, sizeof(args.cap_derive))
+	    .err;
 }
+
+s3k_err_t s3k_br_try_cap_revoke(s3k_cidx_t idx)
+{
+	sys_args_t args = {.cap_revoke = {idx}};
+	return DO_ECALL(S3K_BR_SYS_CAP_REVOKE, args, sizeof(args.cap_revoke))
+	    .err;
+}
+
+// TRY Pmp =================================================
 
 s3k_err_t s3k_br_try_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
 {
@@ -768,5 +911,115 @@ s3k_err_t s3k_br_try_pmp_load(s3k_cidx_t idx, s3k_pmp_slot_t slot)
 s3k_err_t s3k_br_try_pmp_unload(s3k_cidx_t idx)
 {
 	sys_args_t args = {.pmp_unload = {idx}};
-	return DO_ECALL(S3K_BR_SYS_PMP_UNLOAD, args, sizeof(args.pmp_unload)).err;
+	return DO_ECALL(S3K_BR_SYS_PMP_UNLOAD, args, sizeof(args.pmp_unload))
+	    .err;
+}
+
+// TRY Monitor =============================================
+
+s3k_err_t s3k_br_try_mon_suspend(s3k_cidx_t mon, s3k_pid_t pid)
+{
+	sys_args_t args = {
+	    .mon_state = {mon, pid}
+	   };
+	return DO_ECALL(S3K_BR_SYS_MON_SUSPEND, args, sizeof(args.mon_state))
+	    .err;
+}
+
+s3k_err_t s3k_br_try_mon_resume(s3k_cidx_t mon, s3k_pid_t pid)
+{
+	sys_args_t args = {
+	    .mon_state = {mon, pid}
+	   };
+	return DO_ECALL(S3K_BR_SYS_MON_RESUME, args, sizeof(args.mon_state)).err;
+}
+
+s3k_err_t s3k_br_try_mon_state_get(s3k_cidx_t mon, s3k_pid_t pid,
+				   s3k_state_t *state)
+{
+	sys_args_t args = {
+	    .mon_state = {mon, pid}
+	   };
+	s3k_ret_t ret
+	    = DO_ECALL(S3K_BR_SYS_MON_STATE_GET, args, sizeof(args.mon_state));
+	*state = ret.val;
+	return ret.err;
+}
+
+s3k_err_t s3k_br_try_mon_yield(s3k_cidx_t mon, s3k_pid_t pid)
+{
+	sys_args_t args = {
+	    .mon_state = {mon, pid}
+	   };
+	return DO_ECALL(S3K_BR_SYS_MON_YIELD, args, sizeof(args.mon_state)).err;
+}
+
+s3k_err_t s3k_br_try_mon_reg_read(s3k_cidx_t mon, s3k_pid_t pid, s3k_reg_t reg,
+				  uint64_t *val)
+{
+	sys_args_t args = {
+	    .mon_reg_read = {mon, pid, reg}
+	   };
+	s3k_ret_t ret = DO_ECALL(S3K_BR_SYS_MON_REG_READ, args,
+				 sizeof(args.mon_reg_read));
+	*val = ret.val;
+	return ret.err;
+}
+
+s3k_err_t s3k_br_try_mon_reg_write(s3k_cidx_t mon, s3k_pid_t pid, s3k_reg_t reg,
+				   uint64_t val)
+{
+	sys_args_t args = {
+	    .mon_reg_write = {mon, pid, reg, val}
+	 };
+	s3k_ret_t ret = DO_ECALL(S3K_BR_SYS_MON_REG_WRITE, args,
+				 sizeof(args.mon_reg_write));
+	return ret.err;
+}
+
+s3k_err_t s3k_br_try_mon_cap_read(s3k_cidx_t mon_idx, s3k_pid_t pid,
+				  s3k_cidx_t idx, s3k_cap_t *cap)
+{
+	sys_args_t args = {
+	    .mon_cap_read = {mon_idx, pid, idx}
+	       };
+	s3k_ret_t ret = DO_ECALL(S3K_BR_SYS_MON_CAP_READ, args,
+				 sizeof(args.mon_cap_read));
+	if (!ret.err)
+		cap->raw = ret.val;
+	return ret.err;
+}
+
+s3k_err_t s3k_br_try_mon_cap_move(s3k_cidx_t mon_idx, s3k_pid_t src_pid,
+				  s3k_cidx_t src_idx, s3k_pid_t dst_pid,
+				  s3k_cidx_t dst_idx)
+{
+	sys_args_t args = {
+	    .mon_cap_move = {mon_idx, src_pid, src_idx, dst_pid, dst_idx}
+	 };
+	return DO_ECALL(S3K_BR_SYS_MON_CAP_MOVE, args,
+			sizeof(args.mon_cap_move))
+	    .err;
+}
+
+s3k_err_t s3k_br_try_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
+				  s3k_cidx_t idx, s3k_pmp_slot_t slot)
+{
+	sys_args_t args = {
+	    .mon_pmp_load = {mon_idx, pid, idx, slot}
+	     };
+	return DO_ECALL(S3K_BR_SYS_MON_PMP_LOAD, args,
+			sizeof(args.mon_pmp_load))
+	    .err;
+}
+
+s3k_err_t s3k_br_try_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
+				    s3k_cidx_t idx)
+{
+	sys_args_t args = {
+	    .mon_pmp_unload = {mon_idx, pid, idx}
+	 };
+	return DO_ECALL(S3K_BR_SYS_MON_PMP_UNLOAD, args,
+			sizeof(args.mon_pmp_unload))
+	    .err;
 }

@@ -2,13 +2,14 @@
 
 #include "cap/ipc.h"
 #include "cap/util.h"
-#include "preempt.h"
 #include "pmp.h"
+#include "preempt.h"
 #include "sched.h"
 
 typedef err_t (*ipc_move_handler)(cte_t, const cap_t *, cte_t);
 typedef err_t (*delete_handler)(cte_t, const cap_t *);
 typedef err_t (*revoke_handler)(cte_t, cap_t *);
+typedef struct Kernel_state *(*br_revoke_handler)(struct Kernel_state *, u64);
 typedef err_t (*derive_handler)(cte_t, cap_t *, cte_t, const cap_t *);
 
 static err_t cap_delete_time(cte_t src, const cap_t *cap);
@@ -56,6 +57,9 @@ static const revoke_handler revoke_handlers[CAPTY_COUNT] = {
     cap_revoke_channel,
     cap_revoke_socket,
 };
+static const br_revoke_handler br_revoke_handlers[CAPTY_COUNT]
+    = {NULL, Cap_ops_revoke_time, Cap_ops_revoke_memory, Cap_ops_revoke_pmp,
+       Cap_ops_revoke_monitor};
 static const derive_handler derive_handlers[CAPTY_COUNT] = {
     NULL,
     cap_derive_time,
@@ -113,6 +117,23 @@ err_t cap_delete(cte_t c)
 	cap_t cap;
 	cte_cap(c, &cap);
 	return delete_handlers[cap.type](c, &cap);
+}
+
+struct Kernel_state *Cap_ops_revoke(struct Kernel_state *ks, u64 parent)
+{
+	u64 pcap = ks->ctable[parent];
+	if (Cap_get_type(pcap) == CAPTY_NONE)
+		ks->errcode = ERR_EMPTY;
+	do {
+		pcap = ks->ctable[parent];
+		br_revoke_handlers[Cap_get_type(pcap)](ks, parent);
+	} while (ks->errcode == Error_CONTINUE && !preempt());
+
+	if (ks->errcode == Error_SUCCESS) {
+		ks->errcode = Error_PREEMPTED;
+	} else {
+		ks->errcode = Error_SUCCESS;
+	}
 }
 
 err_t cap_revoke(cte_t parent)

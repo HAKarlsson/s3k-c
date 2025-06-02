@@ -8,60 +8,191 @@ defn valid_index(idx: u64) : bool =
 defn valid_slot(slot: Types::pmp_slot_t) : bool =
   slot < Kernel::S3K_PMP_CNT
 
+defn valid_pid(pid: Types::pid_t) : bool =
+  pid < Kernel::S3K_PROC_CNT
+
+defn set_proc_err(ks: kstate, pid: Types::pid_t, err: Error::err_t) : kstate =
+  Ptable::proc_reg_write(ks, pid, Proc::REG_T0, err as Types::word_t)
+
+defn set_proc_retval(ks: kstate, pid: Types::pid_t, val: Types::word_t) : kstate =
+  Ptable::proc_reg_write(ks, pid, Proc::REG_A0, val)
+
 defn cap_read(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
-  if valid_index(idx) then
+  if !valid_index(idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Cap_ops::read(ks, cidx) in
-    let ptable = ks.ptable in
-    let proc = ptable[pid] in
-    let proc = proc.a0 <- ks.vregs[0UL] in
-    let proc = proc.t0 <- ks.errcode as Types::word_t in
-    let ptable = ptable[pid] <- proc in
-    ks.ptable <- ptable
-  else
-    Ptable::set_proc_t0 (ks, pid, Error::INVALID_INDEX as Types::word_t)
+    let ks = set_proc_retval(ks, pid, Kernel::vreg_read(ks, 0UL)) in
+    set_proc_err(ks, pid, ks.errcode)
 
-defn cap_move(ks: kstate, pid: Types::pid_t, src: u64, dst: u64) : kstate =
-  if valid_index(src) && valid_index(dst) then
-    let src_idx = Cap_ops::cap_idx_from_pid(pid, src) in
-    let dst_idx = Cap_ops::cap_idx_from_pid(pid, dst) in
-    let ks = Cap_ops::move(ks, src_idx, dst_idx) in
-    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+defn cap_move(ks: kstate, pid: Types::pid_t, src_idx: u64, dst_idx: u64) : kstate =
+  if !(valid_index(src_idx) && valid_index(dst_idx)) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
-    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+    let s_idx = Cap_ops::cap_idx_from_pid(pid, src_idx) in
+    let d_idx = Cap_ops::cap_idx_from_pid(pid, dst_idx) in
+    let ks = Cap_ops::move(ks, s_idx, d_idx) in
+    set_proc_err(ks, pid, ks.errcode)
 
 defn cap_delete(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
-  if valid_index(idx) then
+  if !valid_index(idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Cap_ops::delete(ks, cidx) in
-    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
-  else
-    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+    set_proc_err(ks, pid, ks.errcode)
   
-defn cap_derive(ks: kstate, pid: Types::pid_t, src: u64, dst: u64, raw: Cap::cap_t) : kstate =
-  if valid_index(src) && valid_index(dst) then
-    if Cap::is_valid(raw) then
-      let src_idx = Cap_ops::cap_idx_from_pid(pid, src) in
-      let dst_idx = Cap_ops::cap_idx_from_pid(pid, dst) in
-      let ks = Cap_ops::derive(ks, src_idx, dst_idx, raw) in
-      Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
-    else
-      Ptable::set_proc_t0(ks, pid, Error::INVALID_DERIVATION as Types::word_t)
+defn cap_derive(ks: kstate, pid: Types::pid_t, src_idx: u64, dst_idx: u64, raw: Cap::cap_t) : kstate =
+  if !(valid_index(src_idx) && valid_index(dst_idx)) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !Cap::is_valid(raw) then
+     set_proc_err(ks, pid, Error::INVALID_DERIVATION)
   else
-    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+      let s_idx = Cap_ops::cap_idx_from_pid(pid, src_idx) in
+      let d_idx = Cap_ops::cap_idx_from_pid(pid, dst_idx) in
+      let ks = Cap_ops::derive(ks, s_idx, d_idx, raw) in
+      set_proc_err(ks, pid, ks.errcode)
+
+defn cap_revoke(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
+  if !valid_index(idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
+    let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
+    let ks = Cap_ops::revoke(ks, cidx) in
+    set_proc_err(ks, pid, ks.errcode)
 
 defn pmp_load(ks: kstate, pid: Types::pid_t, idx: u64, slot: Types::pmp_slot_t) : kstate =
-  if valid_index(idx) && valid_slot(slot) then
+  if !(valid_index(idx) && valid_slot(slot)) then
+    set_proc_err(ks, pid, ks.errcode)
+  else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Pmp::load(ks, cidx, slot) in
-    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
-  else
-    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+    set_proc_err(ks, pid, ks.errcode)
 
 defn pmp_unload(ks: kstate, pid: Types::pid_t, idx: u64) : kstate =
-  if valid_index(idx) then
+  if !valid_index(idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Pmp::unload(ks, cidx) in
-    Ptable::set_proc_t0(ks, pid, ks.errcode as Types::word_t)
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_suspend(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
   else
-    Ptable::set_proc_t0(ks, pid, Error::INVALID_INDEX as Types::word_t)
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_suspend(ks, m_idx, mon_pid) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_resume(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_index(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_resume(ks, m_idx, mon_pid) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_state_get(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+      set_proc_err(ks, pid, Error::INVALID_PID)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_state_get(ks, m_idx, mon_pid) in
+    let ks = set_proc_retval(ks, pid, Kernel::vreg_read(ks, 0UL)) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_yield(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_yield(ks, m_idx, mon_pid) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_reg_read(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t, reg: u64) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_reg_read(ks, m_idx, mon_pid, reg) in
+    let ks = set_proc_retval(ks, pid, Kernel::vreg_read(ks, 0UL)) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_reg_write(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t, reg: u64, val: Types::word_t) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_reg_write(ks, m_idx, mon_pid, reg, val) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_cap_read(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t, r_idx: u64) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let ks = Monitor::cap_read(ks, m_idx, r_idx) in
+    let ks = set_proc_retval(ks, pid, Kernel::vreg_read(ks, 0UL)) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_cap_move(ks: kstate, pid: Types::pid_t, mon_idx: u64, src_pid: Types::pid_t, src_idx: u64, dst_pid: Types::pid_t, dst_idx: u64) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(src_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else if !valid_index(src_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(dst_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else if !valid_index(dst_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let s_idx = Cap_ops::cap_idx_from_pid(src_pid, src_idx) in
+    let d_idx = Cap_ops::cap_idx_from_pid(dst_pid, dst_idx) in
+    let ks = Monitor::cap_move(ks, m_idx, s_idx, d_idx) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_pmp_load(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t, pmp_idx: u64, slot: Types::pmp_slot_t) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else if !valid_index(pmp_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_slot(slot) then
+    set_proc_err(ks, pid, Error::INVALID_SLOT)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let p_idx = Cap_ops::cap_idx_from_pid(mon_pid, pmp_idx) in
+    let ks = Monitor::cap_pmp_load(ks, m_idx, p_idx, slot) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn mon_pmp_unload(ks: kstate, pid: Types::pid_t, mon_idx: u64, mon_pid: Types::pid_t, pmp_idx: u64) : kstate =
+  if !valid_index(mon_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_pid(mon_pid) then
+    set_proc_err(ks, pid, Error::INVALID_PID)
+  else if !valid_index(pmp_idx) then
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
+    let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
+    let p_idx = Cap_ops::cap_idx_from_pid(mon_pid, pmp_idx) in
+    let ks = Monitor::cap_pmp_unload(ks, m_idx, p_idx) in
+    set_proc_err(ks, pid, ks.errcode)

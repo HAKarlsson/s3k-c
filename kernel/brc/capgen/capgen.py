@@ -159,7 +159,7 @@ defn is_valid(cap: cap_t) : bool =
     && (memory_get_bgn(cap) < memory_get_end(cap))
     && (memory_get_mrk(cap) == memory_get_mrk(cap))
   else if cap_type == CAPTY_PMP then
-    pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
+    !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
   else if cap_type == CAPTY_MONITOR then
     (monitor_get_bgn(cap) < monitor_get_end(cap))
     && (monitor_get_bgn(cap) == monitor_get_mrk(cap))

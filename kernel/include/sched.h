@@ -8,6 +8,7 @@
  * a temporary fix in sched_next.
  */
 
+#include "libkernel.h"
 #include "macro.h"
 #include "proc.h"
 
@@ -36,3 +37,8 @@ void sched_update(uint64_t pid, uint64_t end, uint64_t from, uint64_t to);
 
 /// Delete scheduling at hartid, begin-end.
 void sched_delete(uint64_t from, uint64_t to);
+
+struct Kernel_state *Sched_update(struct Kernel_state *ks, u64 pid, u64 end,
+				  u64 from, u64 to);
+
+struct Kernel_state *Sched_delete(struct Kernel_state *ks, u64 from, u64 to);

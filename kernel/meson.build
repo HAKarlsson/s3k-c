@@ -35,7 +35,7 @@ sources = files(
 	'src/trap.c',
 	'src/rtc.c',
 	'src/csr.c',
-	'src/ks_init.c',
+	'src/kinit.c',
 	platdir / 'plat.c',
 )
 
@@ -55,6 +55,7 @@ link_args = [
 barocq = find_program('barocq', required : true)
 
 kernel_br = files(
+	'brc/machine.br',
 	'brc/error.br',
 	'brc/types.br',
 	'brc/capgen/cap.br',
@@ -72,7 +73,7 @@ kernel_br = files(
 kernel_c = custom_target(
 	'kernel_c',
 	input : kernel_br,
-	output : ['kernel_core.c', 'kernel_core.h'],
+	output : ['libkernel.c', 'libkernel.h'],
 	command : [
 		barocq,
 		'@INPUT@',

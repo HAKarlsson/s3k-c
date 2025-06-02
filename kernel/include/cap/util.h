@@ -17,3 +17,4 @@ static inline addr_t tag_block_to_addr(tag_t tag, block_t block)
 
 bool cap_is_valid(const cap_t *cap);
 void cap_print(const cap_t *cap);
+void Cap_print(unsigned long long cap);
