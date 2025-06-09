@@ -85,10 +85,8 @@ kernel_c = custom_target(
 	],
 )
 
-message(kernel_c[1].full_path())
 include_directories = include_directories(
 	'include',
-	meson.current_build_dir(),
 )
 
 elf = executable('s3k.elf',
@@ -97,3 +95,63 @@ elf = executable('s3k.elf',
 	c_args : c_args,
 	link_args : link_args,
 )
+
+unity_proj = subproject('unity')
+
+unity_lib = static_library(meson.project_name(),
+  sources: unity_proj.get_variable('unity_src'),
+  c_args: unity_proj.get_variable('unity_args'),
+  include_directories: unity_proj.get_variable('unity_inc'),
+  install: false,
+  native: true,
+)
+
+unity_dep = declare_dependency(
+  link_with: unity_lib,
+  include_directories: unity_proj.get_variable('unity_inc')
+)
+
+gen_test_runner = unity_proj.get_variable('gen_test_runner')
+
+test_runner = gen_test_runner.process(
+	'test/test.c',
+)
+
+test_sources = files(
+		'src/cap/ops.c',
+		'src/cap/ipc.c',
+		'src/cap/monitor.c',
+		'src/cap/ops.c',
+		'src/cap/pmp.c',
+		'src/cap/table.c',
+		'src/cap/util.c',
+		'src/exception.c',
+		'src/interrupt.c',
+		'src/kprint.c',
+		'src/proc.c',
+		'src/sched.c',
+		'src/syscall.c',
+		'src/trap.c',
+		'src/kinit.c'
+) + kernel_c
+
+s3k_test = executable('s3k_test',
+	sources : test_sources + files(
+		'test/test.c',
+		'test/rtc.c',
+		'test/csr.c',
+		'test/trap.c',
+		'test/kputc.c',
+	) + test_runner,
+	include_directories : include_directories,
+	c_args : [
+		'-include', platdir / 'config.h',
+		'-include', 's3k_conf.h',
+	],
+	native : true,
+	dependencies : [
+	    unity_dep,
+	],
+)
+
+test('s3k_test', s3k_test)
