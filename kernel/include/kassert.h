@@ -15,7 +15,7 @@
  *
  * @copyright MIT License
  */
-//#ifndef NDEBUG
+#ifndef NDEBUG
 
 #define KASSERT_FAILURE(FILE, LINE) \
 	kprintf("Kernel assertion failed at %s:%d.\n", FILE, LINE);
@@ -29,13 +29,12 @@
 			;                            \
 	} while (false)
 
-//#else /* NDEBUG */
+#else /* NDEBUG */
 
-/* #define KASSERT(expr)                            \
+#define KASSERT(expr)                            \
 	do {                                     \
 		if (!(expr))                     \
 			__builtin_unreachable(); \
 	} while (false)
-*/
 
-//#endif /* NDEBUG */
+#endif /* NDEBUG */
