@@ -19,15 +19,17 @@ defn set_proc_retval(ks: kstate, pid: pid_t, val: word_t) : kstate =
 
 defn cap_read(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
     let ks = Cap_ops::read(ks, cidx) in
-    let ks = set_proc_retval(ks, pid, Vreg::read(ks, 0UL)) in
+    let ks = set_proc_retval(ks, pid, Vreg::read(ks, Vreg::V0)) in
     set_proc_err(ks, pid, ks.errcode)
 
 defn cap_move(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64) : kstate =
   if !(valid_index(src_idx) && valid_index(dst_idx)) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let s_idx = Cap_ops::cap_idx_from_pid(pid, src_idx) in
@@ -37,6 +39,7 @@ defn cap_move(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64) : kstate =
 
 defn cap_delete(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
@@ -45,8 +48,10 @@ defn cap_delete(ks: kstate, pid: pid_t, idx: u64) : kstate =
   
 defn cap_derive(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64, raw: cap_t) : kstate =
   if !(valid_index(src_idx) && valid_index(dst_idx)) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !Cap::is_valid(raw) then
+    let ks = Vreg::write(ks, 0UL, pid) in
      set_proc_err(ks, pid, Error::INVALID_DERIVATION)
   else
       let s_idx = Cap_ops::cap_idx_from_pid(pid, src_idx) in
@@ -56,6 +61,7 @@ defn cap_derive(ks: kstate, pid: pid_t, src_idx: u64, dst_idx: u64, raw: cap_t) 
 
 defn cap_revoke(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
@@ -64,6 +70,7 @@ defn cap_revoke(ks: kstate, pid: pid_t, idx: u64) : kstate =
 
 defn pmp_load(ks: kstate, pid: pid_t, idx: u64, slot: pmp_slot_t) : kstate =
   if !(valid_index(idx) && valid_slot(slot)) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, ks.errcode)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
@@ -72,6 +79,7 @@ defn pmp_load(ks: kstate, pid: pid_t, idx: u64, slot: pmp_slot_t) : kstate =
 
 defn pmp_unload(ks: kstate, pid: pid_t, idx: u64) : kstate =
   if !valid_index(idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let cidx = Cap_ops::cap_idx_from_pid(pid, idx) in
@@ -80,8 +88,10 @@ defn pmp_unload(ks: kstate, pid: pid_t, idx: u64) : kstate =
 
 defn mon_suspend(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
@@ -90,8 +100,10 @@ defn mon_suspend(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate 
 
 defn mon_resume(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_index(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
@@ -100,19 +112,23 @@ defn mon_resume(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
 
 defn mon_state_get(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
-      set_proc_err(ks, pid, Error::INVALID_PID)
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_state_get(ks, m_idx, mon_pid) in
-    let ks = set_proc_retval(ks, pid, Vreg::read(ks, 0UL)) in
+    let ks = set_proc_retval(ks, pid, Vreg::read(ks, Vreg::V0)) in
     set_proc_err(ks, pid, ks.errcode)
 
 defn mon_yield(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
@@ -121,19 +137,23 @@ defn mon_yield(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t) : kstate =
 
 defn mon_reg_read(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: u64) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_reg_read(ks, m_idx, mon_pid, reg) in
-    let ks = set_proc_retval(ks, pid, Vreg::read(ks, 0UL)) in
+    let ks = set_proc_retval(ks, pid, Vreg::read(ks, Vreg::V0)) in
     set_proc_err(ks, pid, ks.errcode)
 
 defn mon_reg_write(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: u64, val: word_t) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
@@ -142,25 +162,32 @@ defn mon_reg_write(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, reg: u6
 
 defn mon_cap_read(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, r_idx: u64) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let ks = Monitor::cap_read(ks, m_idx, r_idx) in
-    let ks = set_proc_retval(ks, pid, Vreg::read(ks, 0UL)) in
+    let ks = set_proc_retval(ks, pid, Vreg::read(ks, Vreg::V0)) in
     set_proc_err(ks, pid, ks.errcode)
 
 defn mon_cap_move(ks: kstate, pid: pid_t, mon_idx: u64, src_pid: pid_t, src_idx: u64, dst_pid: pid_t, dst_idx: u64) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(src_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else if !valid_index(src_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(dst_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else if !valid_index(dst_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
@@ -171,12 +198,16 @@ defn mon_cap_move(ks: kstate, pid: pid_t, mon_idx: u64, src_pid: pid_t, src_idx:
 
 defn mon_pmp_load(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_idx: u64, slot: pmp_slot_t) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else if !valid_index(pmp_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_slot(slot) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_SLOT)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
@@ -186,13 +217,69 @@ defn mon_pmp_load(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_idx:
 
 defn mon_pmp_unload(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_idx: u64) : kstate =
   if !valid_index(mon_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_pid(mon_pid) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_PID)
   else if !valid_index(pmp_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let m_idx = Cap_ops::cap_idx_from_pid(pid, mon_idx) in
     let p_idx = Cap_ops::cap_idx_from_pid(mon_pid, pmp_idx) in
     let ks = Monitor::cap_pmp_unload(ks, m_idx, p_idx) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn sock_send(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bool, msg_data: array u64) : kstate =
+  if !valid_index(sock_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_index(cap_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
+    let sock_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
+    let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
+    let ks = Ipc::msg_buf_idx_set(ks, buf_idx) in
+    let ks = Ipc::msg_send_cap_set(ks, send_cap) in
+    let ks = Ipc::msg_data_set(ks, 0UL, msg_data[0UL]) in
+    let ks = Ipc::msg_data_set(ks, 1UL, msg_data[1UL]) in
+    let ks = Ipc::msg_data_set(ks, 2UL, msg_data[2UL]) in
+    let ks = Ipc::msg_data_set(ks, 3UL, msg_data[3UL]) in
+    let next_pid = pid in
+    let ks = Ipc::cap_sock_send(ks, sock_idx, next_pid) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn sock_recv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64) : kstate =
+  if !valid_index(sock_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_index(cap_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
+    let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
+    let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
+    let next_pid = pid in
+    let ks = Ipc::cap_sock_recv(ks, sock_idx, buf_idx, next_pid) in
+    set_proc_err(ks, pid, ks.errcode)
+
+defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bool, msg_data: array u64) : kstate =
+  if !valid_index(sock_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else if !valid_index(cap_idx) then
+    let ks = Vreg::write(ks, 0UL, pid) in
+    set_proc_err(ks, pid, Error::INVALID_INDEX)
+  else
+    let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
+    let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
+    let ks = Ipc::msg_send_cap_set(ks, send_cap) in
+    let ks = Ipc::msg_data_set(ks, 0UL, msg_data[0UL]) in
+    let ks = Ipc::msg_data_set(ks, 1UL, msg_data[1UL]) in
+    let ks = Ipc::msg_data_set(ks, 2UL, msg_data[2UL]) in
+    let ks = Ipc::msg_data_set(ks, 3UL, msg_data[3UL]) in
+    let next_pid = pid in
+    let ks = Ipc::cap_sock_sendrecv(ks, sock_idx, next_pid) in
     set_proc_err(ks, pid, ks.errcode)

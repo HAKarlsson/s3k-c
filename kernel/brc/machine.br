@@ -3,3 +3,7 @@ module Machine
 type state of "struct"
 
 decl time_read : (@read state) -> u64
+
+decl timeout_read : (@read state, u64) -> u64
+
+decl csrr_mhartid : (@read state) -> u64

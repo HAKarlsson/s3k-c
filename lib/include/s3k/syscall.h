@@ -34,9 +34,9 @@ void s3k_sleep(uint64_t time);
 // 			   s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot);
 // s3k_err_t s3k_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
 // 			     s3k_cidx_t pmp_idx);
-s3k_err_t s3k_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
-s3k_reply_t s3k_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_cidx);
-s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
+// s3k_err_t s3k_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
+// s3k_reply_t s3k_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_cidx);
+// s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
 
 // s3k_err_t s3k_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst);
 // s3k_err_t s3k_try_cap_delete(s3k_cidx_t idx);
@@ -62,9 +62,9 @@ s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
 // 			       s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot);
 // s3k_err_t s3k_try_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
 // 				 s3k_cidx_t pmp_idx);
-s3k_err_t s3k_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
-s3k_reply_t s3k_try_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_cidx);
-s3k_reply_t s3k_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
+// s3k_err_t s3k_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
+// s3k_reply_t s3k_try_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_cidx);
+// s3k_reply_t s3k_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
 
 s3k_err_t s3k_br_cap_read(s3k_cidx_t idx, s3k_cap_t *cap);
 s3k_err_t s3k_br_cap_move(s3k_cidx_t src, s3k_cidx_t dst);
@@ -93,6 +93,9 @@ s3k_err_t s3k_br_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
 			   s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot);
 s3k_err_t s3k_br_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
 			     s3k_cidx_t pmp_idx);
+s3k_err_t s3k_br_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
+s3k_reply_t s3k_br_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_cidx);
+s3k_reply_t s3k_br_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
 
 s3k_err_t s3k_br_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst);
 s3k_err_t s3k_br_try_cap_delete(s3k_cidx_t idx);
@@ -120,5 +123,8 @@ s3k_err_t s3k_br_try_mon_pmp_load(s3k_cidx_t mon_idx, s3k_pid_t pid,
 			       s3k_cidx_t pmp_idx, s3k_pmp_slot_t pmp_slot);
 s3k_err_t s3k_br_try_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
 				 s3k_cidx_t pmp_idx);
+s3k_err_t s3k_br_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
+s3k_reply_t s3k_br_try_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_cidx);
+s3k_reply_t s3k_br_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg);
 
 				

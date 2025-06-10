@@ -68,6 +68,8 @@ kernel_br = files(
 	'brc/cap_ops.br',
 	'brc/pmp.br',
 	'brc/monitor.br',
+	'brc/channels.br',
+	'brc/ipc.br',
 	'brc/syscall.br'
 )
 

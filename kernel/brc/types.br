@@ -35,15 +35,23 @@ type proc_t = {
   serv_time: u64;
 }
 
+type channel = {
+  server: pid_t;
+  client: pid_t;
+  buf_idx: u64;
+}
+
 type kstate = {
-  (* Capability data *)
+  (* Capability table *)
   cnext: array u64;
   cprev: array u64;
   ctable: array cap_t;
   (* Scheduler data *)
   tslots: array u64;
-  (* Processes data *)
+  (* Process table *)
   ptable: array proc_t;
+  (* IPC channels *)
+  channels: array channel;
   (* Machine state *)
   mc: Machine::state;
   (* Return data *)

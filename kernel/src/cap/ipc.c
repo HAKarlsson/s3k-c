@@ -212,7 +212,7 @@ err_t cap_sock_recv(cte_t sock, cte_t cap_buf, proc_t **next)
 		}
 		return ERR_TIMEOUT;
 	}
-	return ERR_INVALID_STATE;
+	return ERR_INVALID_STATE; //Dead code ?
 }
 
 err_t cap_sock_sendrecv(cte_t sock, const ipc_msg_t *msg, proc_t **next)

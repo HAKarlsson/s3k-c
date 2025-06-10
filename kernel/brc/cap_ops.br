@@ -232,7 +232,7 @@ defn read(ks: kstate, cidx: u64) : kstate =
   if Cap::get_type(cap) == Cap::CAPTY_NONE then
     ks.errcode <- Error::EMPTY
   else
-    let ks = Vreg::write(ks, 0UL, cap) in
+    let ks = Vreg::write(ks, Vreg::V0, cap) in
     ks.errcode <- Error::SUCCESS
 
 defn move(ks: kstate, src: u64, dst: u64) : kstate =

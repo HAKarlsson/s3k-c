@@ -13,6 +13,16 @@ defn REG_GP : u64 = 3UL
 defn REG_TP : u64 = 4UL
 defn REG_T0 : u64 = 5UL
 defn REG_A0 : u64 = 10UL
+defn REG_A1 : u64 = 11UL
+defn REG_A2 : u64 = 12UL
+defn REG_A3 : u64 = 13UL
+defn REG_A4 : u64 = 14UL
+defn REG_A5 : u64 = 15UL
+defn REG_A6 : u64 = 16UL
+defn REG_A7 : u64 = 117UL
+
+(* Encodes an unexisting process. Must be Config::S3K_PROC_CNT + 1 *)
+defn NULL : pid_t = 3UL
 
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in

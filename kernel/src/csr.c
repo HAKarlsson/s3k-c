@@ -7,6 +7,11 @@ uint64_t csrr_mhartid(void)
 	return hartid;
 }
 
+u64 Machine_csrr_mhartid(struct Machine_state *mc)
+{
+	return csrr_mhartid();
+}
+
 uint64_t csrr_mie(void)
 {
 	uint64_t mie;

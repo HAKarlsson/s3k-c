@@ -515,7 +515,8 @@ proc_t *_br_mon_yield(proc_t *const p, const sys_args_t *args)
 {
 	Syscall_mon_yield(&ks, p->pid, args->mon_state.mon_idx,
 			  args->mon_state.pid);
-	proc_t *next = ks.ptable[Vreg_read(&ks, 0)];
+	u64 next_pid = Vreg_read(&ks, 0);
+	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
 	return next;
 }
 
@@ -565,6 +566,33 @@ proc_t *_br_mon_pmp_unload(proc_t *const p, const sys_args_t *args)
 			       args->mon_pmp_unload.pid,
 			       args->mon_pmp_unload.idx);
 	return p;
+}
+
+proc_t *_br_sock_send(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_sock_send(&ks, p->pid, args->sock.sock_idx, args->sock.cap_idx,
+			  args->sock.send_cap, args->sock.data);
+	u64 next_pid = Vreg_read(&ks, 0);
+	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
+	return next;
+}
+
+proc_t *_br_sock_recv(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_sock_recv(&ks, p->pid, args->sock.sock_idx, args->sock.cap_idx);
+	u64 next_pid = Vreg_read(&ks, 0);
+	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
+	return next;
+}
+
+proc_t *_br_sock_sendrecv(proc_t *const p, const sys_args_t *args)
+{
+	Syscall_sock_sendrecv(&ks, p->pid, args->sock.sock_idx,
+			      args->sock.cap_idx, args->sock.send_cap,
+			      args->sock.data);
+	u64 next_pid = Vreg_read(&ks, 0);
+	proc_t *next = next_pid == Proc_NULL ? NULL : ks.ptable[next_pid];
+	return next;
 }
 
 proc_t *syscall_handler(proc_t *proc)
@@ -660,6 +688,12 @@ proc_t *syscall_handler(proc_t *proc)
 		return _br_mon_pmp_load(proc, args);
 	case BR_SYSCALL_MON_PMP_UNLOAD:
 		return _br_mon_pmp_unload(proc, args);
+	case BR_SYSCALL_SOCK_SEND:
+		return _br_sock_send(proc, args);
+	case BR_SYSCALL_SOCK_RECV:
+		return _br_sock_recv(proc, args);
+	case BR_SYSCALL_SOCK_SENDRECV:
+		return _br_sock_sendrecv(proc, args);
 	default:
 		proc->t0 = ERR_INVALID_SYSCALL;
 		return proc;

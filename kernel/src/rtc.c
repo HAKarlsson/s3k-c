@@ -1,7 +1,5 @@
 #include "rtc.h"
 
-#include "libkernel.h"
-
 extern volatile uint64_t __mtime[];
 extern volatile uint64_t __mtimecmp[];
 
@@ -13,6 +11,11 @@ uint64_t rtc_time_get(void)
 u64 Machine_time_read(struct Machine_state *mc)
 {
 	return rtc_time_get();
+}
+
+u64 Machine_timeout_read(struct Machine_state *mc, u64 hart)
+{
+	return rtc_timeout_get(hart);
 }
 
 void rtc_time_set(uint64_t time)

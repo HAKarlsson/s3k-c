@@ -84,7 +84,7 @@ typedef enum {
 	SYSCALL_SOCK_RECV,
 	SYSCALL_SOCK_SENDRECV,
 
-	// Barocq capability management
+	// Barocq capability management calls
 	BR_SYSCALL_CAP_READ,
 	BR_SYSCALL_CAP_MOVE,
 	BR_SYSCALL_CAP_DELETE,
@@ -106,6 +106,11 @@ typedef enum {
 	BR_SYSCALL_MON_CAP_MOVE,
 	BR_SYSCALL_MON_PMP_LOAD,
 	BR_SYSCALL_MON_PMP_UNLOAD,
+
+	// Barocq socket calls
+	BR_SYSCALL_SOCK_SEND,
+	BR_SYSCALL_SOCK_RECV,
+	BR_SYSCALL_SOCK_SENDRECV,
 } syscall_t;
 
 typedef union {

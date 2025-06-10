@@ -58,6 +58,11 @@ typedef enum {
 	S3K_BR_SYS_MON_CAP_MOVE,
 	S3K_BR_SYS_MON_PMP_LOAD,
 	S3K_BR_SYS_MON_PMP_UNLOAD,
+
+	// Barocq socket calls
+	S3K_BR_SYS_SOCK_SEND,
+	S3K_BR_SYS_SOCK_RECV,
+	S3K_BR_SYS_SOCK_SENDRECV,
 } s3k_syscall_t;
 
 typedef union {
@@ -450,32 +455,32 @@ void s3k_sleep(uint64_t time)
 // 	return err;
 // }
 
-s3k_err_t s3k_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
-{
-	s3k_err_t err;
-	do {
-		err = s3k_try_sock_send(sock_idx, msg);
-	} while (err == S3K_ERR_PREEMPTED);
-	return err;
-}
+// s3k_err_t s3k_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+// {
+// 	s3k_err_t err;
+// 	do {
+// 		err = s3k_try_sock_send(sock_idx, msg);
+// 	} while (err == S3K_ERR_PREEMPTED);
+// 	return err;
+// }
 
-s3k_reply_t s3k_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_idx)
-{
-	s3k_reply_t reply;
-	do {
-		reply = s3k_try_sock_recv(sock_idx, cap_idx);
-	} while (reply.err == S3K_ERR_PREEMPTED);
-	return reply;
-}
+// s3k_reply_t s3k_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_idx)
+// {
+// 	s3k_reply_t reply;
+// 	do {
+// 		reply = s3k_try_sock_recv(sock_idx, cap_idx);
+// 	} while (reply.err == S3K_ERR_PREEMPTED);
+// 	return reply;
+// }
 
-s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
-{
-	s3k_reply_t reply;
-	do {
-		reply = s3k_try_sock_sendrecv(sock_idx, msg);
-	} while (reply.err == S3K_ERR_PREEMPTED);
-	return reply;
-}
+// s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+// {
+// 	s3k_reply_t reply;
+// 	do {
+// 		reply = s3k_try_sock_sendrecv(sock_idx, msg);
+// 	} while (reply.err == S3K_ERR_PREEMPTED);
+// 	return reply;
+// }
 
 // s3k_err_t s3k_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
 // {
@@ -623,77 +628,77 @@ s3k_reply_t s3k_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
 // 	    .err;
 // }
 
-s3k_err_t s3k_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
-{
-	sys_args_t args = {
-	    .sock = {.sock_idx = sock_idx,
-		     .cap_idx = msg->cap_idx,
-		     .send_cap = msg->send_cap,
-		     {msg->data[0], msg->data[1], msg->data[2], msg->data[3]}}
-	      };
-	return DO_ECALL(S3K_SYS_SOCK_SEND, args, sizeof(args.sock)).err;
-}
+// s3k_err_t s3k_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+// {
+// 	sys_args_t args = {
+// 	    .sock = {.sock_idx = sock_idx,
+// 		     .cap_idx = msg->cap_idx,
+// 		     .send_cap = msg->send_cap,
+// 		     {msg->data[0], msg->data[1], msg->data[2], msg->data[3]}}
+// 	      };
+// 	return DO_ECALL(S3K_SYS_SOCK_SEND, args, sizeof(args.sock)).err;
+// }
 
-s3k_reply_t s3k_try_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_idx)
-{
-	sys_args_t args = {
-	    .sock = {.sock_idx = sock_idx, .cap_idx = cap_idx}
-	      };
-	register uint64_t t0 __asm__("t0") = S3K_SYS_SOCK_RECV;
-	register uint64_t a0 __asm__("a0") = args.a0;
-	register uint64_t a1 __asm__("a1") = args.a1;
-	register uint64_t a2 __asm__("a2") = args.a2;
-	register uint64_t a3 __asm__("a3") = args.a3;
-	register uint64_t a4 __asm__("a4") = args.a4;
-	register uint64_t a5 __asm__("a5") = args.a5;
-	register uint64_t a6 __asm__("a6") = args.a6;
-	register uint64_t a7 __asm__("a7") = args.a7;
-	__asm__ volatile("ecall"
-			 : "+r"(t0), "+r"(a0), "+r"(a1), "+r"(a2), "+r"(a3),
-			   "+r"(a4), "+r"(a5)
-			 : "r"(a6), "r"(a7));
-	s3k_reply_t reply;
-	reply.err = t0;
-	reply.tag = a0;
-	reply.cap.raw = a1;
-	reply.data[0] = a2;
-	reply.data[1] = a3;
-	reply.data[2] = a4;
-	reply.data[3] = a5;
-	return reply;
-}
+// s3k_reply_t s3k_try_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_idx)
+// {
+// 	sys_args_t args = {
+// 	    .sock = {.sock_idx = sock_idx, .cap_idx = cap_idx}
+// 	      };
+// 	register uint64_t t0 __asm__("t0") = S3K_SYS_SOCK_RECV;
+// 	register uint64_t a0 __asm__("a0") = args.a0;
+// 	register uint64_t a1 __asm__("a1") = args.a1;
+// 	register uint64_t a2 __asm__("a2") = args.a2;
+// 	register uint64_t a3 __asm__("a3") = args.a3;
+// 	register uint64_t a4 __asm__("a4") = args.a4;
+// 	register uint64_t a5 __asm__("a5") = args.a5;
+// 	register uint64_t a6 __asm__("a6") = args.a6;
+// 	register uint64_t a7 __asm__("a7") = args.a7;
+// 	__asm__ volatile("ecall"
+// 			 : "+r"(t0), "+r"(a0), "+r"(a1), "+r"(a2), "+r"(a3),
+// 			   "+r"(a4), "+r"(a5)
+// 			 : "r"(a6), "r"(a7));
+// 	s3k_reply_t reply;
+// 	reply.err = t0;
+// 	reply.tag = a0;
+// 	reply.cap.raw = a1;
+// 	reply.data[0] = a2;
+// 	reply.data[1] = a3;
+// 	reply.data[2] = a4;
+// 	reply.data[3] = a5;
+// 	return reply;
+// }
 
-s3k_reply_t s3k_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
-{
-	sys_args_t args = {
-	    .sock = {.sock_idx = sock_idx,
-		     .cap_idx = msg->cap_idx,
-		     .send_cap = msg->send_cap,
-		     {msg->data[0], msg->data[1], msg->data[2], msg->data[3]}}
-	      };
-	register uint64_t t0 __asm__("t0") = S3K_SYS_SOCK_SENDRECV;
-	register uint64_t a0 __asm__("a0") = args.a0;
-	register uint64_t a1 __asm__("a1") = args.a1;
-	register uint64_t a2 __asm__("a2") = args.a2;
-	register uint64_t a3 __asm__("a3") = args.a3;
-	register uint64_t a4 __asm__("a4") = args.a4;
-	register uint64_t a5 __asm__("a5") = args.a5;
-	register uint64_t a6 __asm__("a6") = args.a6;
-	register uint64_t a7 __asm__("a7") = args.a7;
-	__asm__ volatile("ecall"
-			 : "+r"(t0), "+r"(a0), "+r"(a1), "+r"(a2), "+r"(a3),
-			   "+r"(a4), "+r"(a5)
-			 : "r"(a6), "r"(a7));
-	s3k_reply_t reply;
-	reply.err = t0;
-	reply.tag = a0;
-	reply.cap.raw = a1;
-	reply.data[0] = a2;
-	reply.data[1] = a3;
-	reply.data[2] = a4;
-	reply.data[3] = a5;
-	return reply;
-}
+// s3k_reply_t s3k_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+// {
+// 	sys_args_t args = {
+// 	    .sock = {.sock_idx = sock_idx,
+// 		     .cap_idx = msg->cap_idx,
+// 		     .send_cap = msg->send_cap,
+// 		     {msg->data[0], msg->data[1], msg->data[2], msg->data[3]}}
+// 	      };
+// 	register uint64_t t0 __asm__("t0") = S3K_SYS_SOCK_SENDRECV;
+// 	register uint64_t a0 __asm__("a0") = args.a0;
+// 	register uint64_t a1 __asm__("a1") = args.a1;
+// 	register uint64_t a2 __asm__("a2") = args.a2;
+// 	register uint64_t a3 __asm__("a3") = args.a3;
+// 	register uint64_t a4 __asm__("a4") = args.a4;
+// 	register uint64_t a5 __asm__("a5") = args.a5;
+// 	register uint64_t a6 __asm__("a6") = args.a6;
+// 	register uint64_t a7 __asm__("a7") = args.a7;
+// 	__asm__ volatile("ecall"
+// 			 : "+r"(t0), "+r"(a0), "+r"(a1), "+r"(a2), "+r"(a3),
+// 			   "+r"(a4), "+r"(a5)
+// 			 : "r"(a6), "r"(a7));
+// 	s3k_reply_t reply;
+// 	reply.err = t0;
+// 	reply.tag = a0;
+// 	reply.cap.raw = a1;
+// 	reply.data[0] = a2;
+// 	reply.data[1] = a3;
+// 	reply.data[2] = a4;
+// 	reply.data[3] = a5;
+// 	return reply;
+// }
 
 // System calls to the Barocq implementation
 
@@ -865,6 +870,35 @@ s3k_err_t s3k_br_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
 	return err;
 }
 
+// IPC =====================================================
+
+s3k_err_t s3k_br_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+{
+	s3k_err_t err;
+	do {
+		err = s3k_br_try_sock_send(sock_idx, msg);
+	} while (err == S3K_ERR_PREEMPTED);
+	return err;
+}
+
+s3k_reply_t s3k_br_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_idx)
+{
+	s3k_reply_t reply;
+	do {
+		reply = s3k_br_try_sock_recv(sock_idx, cap_idx);
+	} while (reply.err == S3K_ERR_PREEMPTED);
+	return reply;
+}
+
+s3k_reply_t s3k_br_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+{
+	s3k_reply_t reply;
+	do {
+		reply = s3k_br_try_sock_sendrecv(sock_idx, msg);
+	} while (reply.err == S3K_ERR_PREEMPTED);
+	return reply;
+}
+
 // TRY Cap management ======================================
 
 s3k_err_t s3k_br_try_cap_move(s3k_cidx_t src, s3k_cidx_t dst)
@@ -1022,4 +1056,78 @@ s3k_err_t s3k_br_try_mon_pmp_unload(s3k_cidx_t mon_idx, s3k_pid_t pid,
 	return DO_ECALL(S3K_BR_SYS_MON_PMP_UNLOAD, args,
 			sizeof(args.mon_pmp_unload))
 	    .err;
+}
+
+// TRY IPC =================================================
+
+s3k_err_t s3k_br_try_sock_send(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+{
+	sys_args_t args = {
+	    .sock = {.sock_idx = sock_idx,
+		     .cap_idx = msg->cap_idx,
+		     .send_cap = msg->send_cap,
+		     {msg->data[0], msg->data[1], msg->data[2], msg->data[3]}}
+	      };
+	return DO_ECALL(S3K_BR_SYS_SOCK_SEND, args, sizeof(args.sock)).err;
+}
+
+s3k_reply_t s3k_br_try_sock_recv(s3k_cidx_t sock_idx, s3k_cidx_t cap_idx)
+{
+	sys_args_t args = {
+	    .sock = {.sock_idx = sock_idx, .cap_idx = cap_idx}
+	      };
+	register uint64_t t0 __asm__("t0") = S3K_BR_SYS_SOCK_RECV;
+	register uint64_t a0 __asm__("a0") = args.a0;
+	register uint64_t a1 __asm__("a1") = args.a1;
+	register uint64_t a2 __asm__("a2") = args.a2;
+	register uint64_t a3 __asm__("a3") = args.a3;
+	register uint64_t a4 __asm__("a4") = args.a4;
+	register uint64_t a5 __asm__("a5") = args.a5;
+	register uint64_t a6 __asm__("a6") = args.a6;
+	register uint64_t a7 __asm__("a7") = args.a7;
+	__asm__ volatile("ecall"
+			 : "+r"(t0), "+r"(a0), "+r"(a1), "+r"(a2), "+r"(a3),
+			   "+r"(a4), "+r"(a5)
+			 : "r"(a6), "r"(a7));
+	s3k_reply_t reply;
+	reply.err = t0;
+	reply.tag = a0;
+	reply.cap.raw = a1;
+	reply.data[0] = a2;
+	reply.data[1] = a3;
+	reply.data[2] = a4;
+	reply.data[3] = a5;
+	return reply;
+}
+
+s3k_reply_t s3k_br_try_sock_sendrecv(s3k_cidx_t sock_idx, const s3k_msg_t *msg)
+{
+	sys_args_t args = {
+	    .sock = {.sock_idx = sock_idx,
+		     .cap_idx = msg->cap_idx,
+		     .send_cap = msg->send_cap,
+		     {msg->data[0], msg->data[1], msg->data[2], msg->data[3]}}
+	      };
+	register uint64_t t0 __asm__("t0") = S3K_BR_SYS_SOCK_SENDRECV;
+	register uint64_t a0 __asm__("a0") = args.a0;
+	register uint64_t a1 __asm__("a1") = args.a1;
+	register uint64_t a2 __asm__("a2") = args.a2;
+	register uint64_t a3 __asm__("a3") = args.a3;
+	register uint64_t a4 __asm__("a4") = args.a4;
+	register uint64_t a5 __asm__("a5") = args.a5;
+	register uint64_t a6 __asm__("a6") = args.a6;
+	register uint64_t a7 __asm__("a7") = args.a7;
+	__asm__ volatile("ecall"
+			 : "+r"(t0), "+r"(a0), "+r"(a1), "+r"(a2), "+r"(a3),
+			   "+r"(a4), "+r"(a5)
+			 : "r"(a6), "r"(a7));
+	s3k_reply_t reply;
+	reply.err = t0;
+	reply.tag = a0;
+	reply.cap.raw = a1;
+	reply.data[0] = a2;
+	reply.data[1] = a3;
+	reply.data[2] = a4;
+	reply.data[3] = a5;
+	return reply;
 }

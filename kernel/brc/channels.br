@@ -1,0 +1,24 @@
+module Channels
+
+import Types
+
+defn server_set(ks: kstate, chan_idx: u64, srv: pid_t) : kstate =
+  let channels = ks.channels in
+  let chan = channels[chan_idx] in
+  let chan = chan.server <- srv in
+  let channels = channels[chan_idx] <- chan in
+  ks.channels <- channels
+
+defn client_set(ks: kstate, chan_idx: u64, cli: pid_t) : kstate =
+  let channels = ks.channels in
+  let chan = channels[chan_idx] in
+  let chan = chan.client <- cli in
+  let channels = channels[chan_idx] <- chan in
+  ks.channels <- channels
+
+defn buf_idx_set(ks: kstate, chan_idx: u64, bidx: u64) : kstate =
+  let channels = ks.channels in
+  let chan = channels[chan_idx] in
+  let chan = chan.buf_idx <- bidx in
+  let channels = channels[chan_idx] <- chan in
+  ks.channels <- channels

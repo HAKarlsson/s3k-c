@@ -8,6 +8,7 @@
 
 #ifndef __ASSEMBLER__
 #include <types.h>
+#include "libkernel.h"
 #endif
 
 /* Machine CSR constants */
