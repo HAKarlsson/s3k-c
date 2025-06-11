@@ -166,8 +166,12 @@ void test_Syscall_cap_delete(void)
 
 void test_Syscall_cap_derive_memory_valid(void)
 {
-	cap_t cap = cap_mk_memory(0x80020000, 0x80040000, MEM_RWX);
-	Syscall_cap_derive(&ks, 0, 1, 8, cap.raw);
-	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[0]->t0);
-	TEST_ASSERT_EQUAL_UINT64(cap.raw, ks.ctable[8]);
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap.raw, ks.ctable[dst]);
 }

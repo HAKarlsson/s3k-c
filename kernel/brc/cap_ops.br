@@ -72,7 +72,7 @@ defn derive_memory(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   then
     let cap = Cap::memory_set_mrk(cap, Cap::memory_get_end(ncap)) in
     let ks = Ctable::set_cap(ks, src, cap) in
-    let ks = Ctable::insert(ks, dst, cap, src) in
+    let ks = Ctable::insert(ks, dst, ncap, src) in
     ks.errcode <- Error::SUCCESS
   else
     let pmp_begin = pmp_napot_decode_base(Cap::pmp_get_addr(ncap)) in
