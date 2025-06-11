@@ -164,7 +164,7 @@ void test_Syscall_cap_delete(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_EMPTY, ks.ptable[0]->t0);
 }
 
-void test_Syscall_cap_derive_memory_valid(void)
+void test_Syscall_cap_derive_memory_valid1(void)
 {
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
@@ -174,4 +174,156 @@ void test_Syscall_cap_derive_memory_valid(void)
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 	TEST_ASSERT_EQUAL_UINT64(cap.raw, ks.ctable[dst]);
+}
+
+void test_Syscall_cap_derive_memory_valid2(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst1 = 6; // Destination capability index
+	int dst2 = 7; // Another destination capability index
+	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = cap_mk_memory(0x80040000, 0x80080000, MEM_RW);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_valid3(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst1 = 6; // Destination capability index
+	int dst2 = 7; // Another destination capability index
+	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_double1(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst1 = 6; // Destination capability index
+	int dst2 = 7; // Another destination capability index
+	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_tripple(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst1 = 6; // Destination capability index
+	int dst2 = 7; // Another destination capability index
+	int dst3 = 8; // Another destination capability index
+	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = cap_mk_pmp(pmp_napot_encode(0x80040000, 0x10000), MEM_RWX);
+	cap_t cap3 = cap_mk_memory(0x80040000, 0x80080000, MEM_RW);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
+	Syscall_cap_derive(&ks, pid, src, dst3, cap3.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_dest1(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = Config_S3K_CAP_CNT; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_dest2(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 2; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_dest3(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 1; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_range1(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 6; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80020000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_range2(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 6; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80010000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_range3(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 6; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80010000, 0x80040000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_range4(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst = 6; // Destination capability index
+	cap_t cap = cap_mk_memory(0x80020000, 0x80140000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_perm1(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst1 = 6; // Destination capability index
+	int dst2 = 7; // Another destination capability index
+	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
+	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RWX);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+}
+
+void test_Syscall_cap_derive_memory_invalid_perm2(void)
+{
+	int pid = 0; // Process ID
+	int src = 1; // Source capability index
+	int dst1 = 6; // Destination capability index
+	int dst2 = 7; // Another destination capability index
+	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
+	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }

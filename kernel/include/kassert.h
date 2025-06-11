@@ -31,10 +31,6 @@
 
 #else /* NDEBUG */
 
-#define KASSERT(expr)                            \
-	do {                                     \
-		if (!(expr))                     \
-			__builtin_unreachable(); \
-	} while (false)
+#define KASSERT(expr)
 
 #endif /* NDEBUG */

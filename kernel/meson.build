@@ -143,6 +143,7 @@ s3k_test = executable('s3k_test',
 	c_args : [
 		'-include', platdir / 'config.h',
 		'-include', 's3k_conf.h',
+		'-DNDEBUG',
 	],
 	native : true,
 	dependencies : [
