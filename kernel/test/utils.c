@@ -84,7 +84,6 @@ void csrw_pmpcfg1(word_t cfg)
 
 void kputc(char c)
 {
-	putchar(c);
 }
 
 uint64_t rtc_time_get(void)

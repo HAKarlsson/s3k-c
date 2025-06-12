@@ -1137,3 +1137,60 @@ void test_Syscall_cap_revoke_channel_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 }
+/*
+ * Testing channel revocation
+ */
+void test_Syscall_cap_revoke_channel_success1(void)
+{
+	rtc_time_set(0);
+	rtc_timeout_set(0, 1000); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	int chan = 4;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0;
+	cap_t cap1 = cap_mk_channel(0, 8);
+	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
+}
+
+/*
+ * Testing channel revocation
+ */
+void test_Syscall_cap_revoke_channel_preempted1(void)
+{
+	rtc_time_set(1);
+	rtc_timeout_set(0, 0); // Reset timeout
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int dst2 = 9; // Destination capability index
+	int chan = 4;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0;
+	cap_t cap1 = cap_mk_channel(0, 8);
+	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
+
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(Error_PREEMPTED, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(chan+1, Cap_channel_get_mrk(ks.ctable[src]));
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
+}

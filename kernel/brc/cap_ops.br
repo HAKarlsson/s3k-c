@@ -247,6 +247,11 @@ defn revoke_channel(ks: kstate, parent: u64) : kstate =
       ks.errcode <- Error::SUCCESS
     else
       ks.errcode <- Error::CONTINUE
+  else if (Cap::get_type(ccap) == Cap::CAPTY_SOCKET)
+      && (Cap::socket_get_chan(ccap) <= Cap::channel_get_end(pcap))
+  then
+    let ks = Ctable::delete(ks, child) in
+    ks.errcode <- Error::CONTINUE
   else
     let pcap = Cap::channel_set_mrk(pcap, Cap::channel_get_bgn(pcap)) in
     let ks = Ctable::set_cap(ks, parent, pcap) in
