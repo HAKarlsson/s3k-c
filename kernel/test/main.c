@@ -22,8 +22,9 @@ void setUp(void)
 	    cap_mk_pmp(pmp_napot_encode(0x80010000, 0x10000), MEM_RWX),
 	    cap_mk_memory(0x80020000, 0x80100000, MEM_RWX),
 	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
-	    cap_mk_time(0, S3K_SLOT_CNT),
-	    cap_mk_monitor(0, S3K_PROC_CNT),
+	    cap_mk_time(0, Config_S3K_SLOT_CNT),
+	    cap_mk_monitor(0, Config_S3K_PROC_CNT),
+	    cap_mk_channel(0, Config_S3K_CHAN_CNT),
 	};
 	kstate_init(init_caps, ARRAY_SIZE(init_caps));
 	ks.ptable[0]->pc = 0x80010000;
@@ -131,14 +132,14 @@ void test_Setup(void)
 	    cap_mk_pmp(ram_pmp, MEM_RWX).raw,
 	    cap_mk_memory(0x80020000, 0x80100000, MEM_RWX).raw,
 	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW).raw,
-	    cap_mk_time(0, S3K_SLOT_CNT).raw,
-	    cap_mk_monitor(0, S3K_PROC_CNT).raw,
+	    cap_mk_time(0, Config_S3K_SLOT_CNT).raw,
+	    cap_mk_monitor(0, Config_S3K_PROC_CNT).raw,
+	    cap_mk_channel(0, Config_S3K_CHAN_CNT).raw,
 	};
 	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0);    // Set slot to 0
 	init_caps[0] = Cap_pmp_set_used(init_caps[0], true); // Set slot to 0
 
-	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable,
-				       ARRAY_SIZE(init_caps));
+	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable, ARRAY_SIZE(init_caps));
 
 	// Check PC initialized to 0x80010000
 	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->pc, 0x80010000);
