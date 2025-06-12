@@ -164,20 +164,29 @@ void test_Setup(void)
 	TEST_ASSERT_TRUE(check_schedule(0, 0, S3K_SLOT_CNT));
 }
 
+/*
+ * Check that Syscall_cap_read reads the correct capability
+ */
 void test_Syscall_cap_read(void)
 {
-	// Process 0 reads capability 0.
-	Syscall_cap_read(&ks, 0, 0);
-	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->t0, Error_SUCCESS);
-	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->a0, ks.ctable[0]);
-
-	// Process 0 reads capability 1.
-	Syscall_cap_read(&ks, 0, 1);
-	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->t0, Error_SUCCESS);
-	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->a0, ks.ctable[1]);
+	for (int i = 0; i < S3K_CAP_CNT; i++) {
+		u64 cap = ks.ctable[i];
+		u64 a0 = ks.ptable[0]->a0;
+		Syscall_cap_read(&ks, 0, i);
+		if (cap == 0) {
+			TEST_ASSERT_EQUAL_UINT64(Error_EMPTY, ks.ptable[0]->t0);
+			TEST_ASSERT_EQUAL_UINT64(a0, ks.ptable[0]->a0);
+		} else {
+			TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[0]->t0);
+			TEST_ASSERT_EQUAL_UINT64(cap, ks.ptable[0]->a0);
+		}
+	}
 }
 
-void test_Syscall_cap_move(void)
+/*
+ * Check that Syscall_cap_move moves the capability to the correct slot
+ */
+void test_Syscall_cap_move_valid1(void)
 {
 	// Process 0 moves capability 0 to slot 10.
 	u64 cap0 = ks.ctable[0];
@@ -185,20 +194,37 @@ void test_Syscall_cap_move(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[0]->t0);
 	TEST_ASSERT_EQUAL_UINT64(cap0, ks.ctable[8]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[0]);
-
-	// Process 0 moves capability 8 to slot 100. (Should fail)
-	Syscall_cap_move(&ks, 0, 8, 100);
-	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[0]->t0);
-	TEST_ASSERT_EQUAL_UINT64(cap0, ks.ctable[8]);
-
-	// Process 0 moves capability 1 to slot 0. (Should fail)
-	u64 cap1 = ks.ctable[1];
-	Syscall_cap_move(&ks, 0, 1, 0);
-	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[0]->t0);
-	TEST_ASSERT_EQUAL_UINT64(cap1, ks.ctable[0]);
 }
 
-void test_Syscall_cap_delete(void)
+/*
+ * Check that Syscall_cap_move does not move a capability to an invalid slot
+ */
+void test_Syscall_cap_move_invalid1(void)
+{
+	u64 cap0 = ks.ctable[0];
+	// Process 0 tries to move capability 0 to slot 100. (Should fail)
+	Syscall_cap_move(&ks, 0, 1, 100);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[0]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap0, ks.ctable[0]);
+}
+/*
+ * Check that Syscall_cap_move moves the capability colliding with an existing one
+ */
+void test_Syscall_cap_move_valid(void)
+{
+	// Process 0 moves capability 0 to slot 1. (Should fail)
+	u64 cap0 = ks.ctable[0];
+	u64 cap1 = ks.ctable[1];
+	Syscall_cap_move(&ks, 0, 1, 0);
+	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[0]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap0, ks.ctable[0]);
+	TEST_ASSERT_EQUAL_UINT64(cap1, ks.ctable[1]);
+}
+
+/*
+ * Check that Syscall_cap_delete can delete capabilities
+ */
+void test_Syscall_cap_delete_valid1(void)
 {
 	// Process 0 deletes capability 0.
 	Syscall_cap_delete(&ks, 0, 0);
@@ -209,12 +235,56 @@ void test_Syscall_cap_delete(void)
 	Syscall_cap_delete(&ks, 0, 1);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[0]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[1]);
+}
 
-	// Process 0 tries to delete capability 1 again. (Should fail)
-	Syscall_cap_delete(&ks, 0, 1);
+/*
+ * Check that Syscall_cap_delete does not delete capabilities that are not present
+ */
+void test_Syscall_cap_delete_invalid1(void)
+{
+	// Process 0 tries to delete capability 0 twice.
+	Syscall_cap_delete(&ks, 0, 0);
+	Syscall_cap_delete(&ks, 0, 0);
+	TEST_ASSERT_EQUAL_UINT64(Error_EMPTY, ks.ptable[0]->t0);
+	// Process 0 tries to delete capability 10.
+	ks.ptable[0]->t0 = 0xdeadbeef;
+	Syscall_cap_delete(&ks, 0, 10);
 	TEST_ASSERT_EQUAL_UINT64(Error_EMPTY, ks.ptable[0]->t0);
 }
 
+/*
+ * Check that Syscall_cap_delete does not delete capabilities out of bounds.
+ */
+void test_Syscall_cap_delete_invalid2(void)
+{
+	// Process 0 tries to delete capability 32 twice.
+	Syscall_cap_delete(&ks, 0, 32);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[0]->t0);
+}
+
+/*
+ * Check that Syscall_cap_revoke on invalid idnex returns Error_INVALID_INDEX.
+ */
+void test_Syscall_cap_revoke_invalid_index1(void)
+{
+	// Process 0 revokes capability 32 (out-of-bounds).
+	Syscall_cap_revoke(&ks, 0, 32);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[0]->t0);
+}
+
+/*
+ * Check that Syscall_cap_revoke on empty capability returns Error_EMPTY.
+ */
+void test_Syscall_cap_revoke_empty1(void)
+{
+	// Process 0 revokes capability 8 (empty).
+	Syscall_cap_revoke(&ks, 0, 8);
+	TEST_ASSERT_EQUAL_UINT64(Error_EMPTY, ks.ptable[0]->t0);
+}
+
+/*
+ * Check that Syscall_cap_derive can derive a valid memory capability.
+ */
 void test_Syscall_cap_derive_memory_valid1(void)
 {
 	int pid = 0; // Process ID
@@ -227,7 +297,25 @@ void test_Syscall_cap_derive_memory_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(cap.raw, ks.ctable[dst]);
 }
 
+/*
+ * Check that Syscall_cap_derive can derive a valid memory capability.
+ */
 void test_Syscall_cap_derive_memory_valid2(void)
+{
+	int pid = 0; // Process ID
+	int src = 2; // Source capability index
+	int dst = 8; // Destination capability index
+	cap_t cap = cap_mk_memory(0x10000000, 0x10001000, MEM_RW);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
+	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap.raw, ks.ctable[dst]);
+}
+
+/*
+ * Check that non-overlapping memory capabilities can be derived.
+ */
+void test_Syscall_cap_derive_memory_valid3(void)
 {
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
@@ -240,19 +328,25 @@ void test_Syscall_cap_derive_memory_valid2(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 }
 
-void test_Syscall_cap_derive_memory_valid3(void)
+/*
+ * Check that memory capabilities can be derived recursively.
+ */
+void test_Syscall_cap_derive_memory_valid4(void)
 {
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
-	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that overlapping memory capabilities cannot be derived from the same parent.
+ */
 void test_Syscall_cap_derive_memory_invalid_double1(void)
 {
 	int pid = 0; // Process ID
@@ -266,6 +360,9 @@ void test_Syscall_cap_derive_memory_invalid_double1(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that memory capability cannot be derived after a PMP capability.
+ */
 void test_Syscall_cap_derive_memory_invalid_tripple(void)
 {
 	int pid = 0; // Process ID
@@ -282,6 +379,9 @@ void test_Syscall_cap_derive_memory_invalid_tripple(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability can not be derived to a invalid destination index.
+ */
 void test_Syscall_cap_derive_memory_invalid_dest1(void)
 {
 	int pid = 0; // Process ID
@@ -293,6 +393,9 @@ void test_Syscall_cap_derive_memory_invalid_dest1(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability can not be derived to a occupied destination index.
+ */
 void test_Syscall_cap_derive_memory_invalid_dest2(void)
 {
 	int pid = 0; // Process ID
@@ -303,6 +406,9 @@ void test_Syscall_cap_derive_memory_invalid_dest2(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability can not be derived to its own index.
+ */
 void test_Syscall_cap_derive_memory_invalid_dest3(void)
 {
 	int pid = 0; // Process ID
@@ -313,6 +419,9 @@ void test_Syscall_cap_derive_memory_invalid_dest3(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability can not be derived with zero size
+ */
 void test_Syscall_cap_derive_memory_invalid_range1(void)
 {
 	int pid = 0; // Process ID
@@ -323,6 +432,9 @@ void test_Syscall_cap_derive_memory_invalid_range1(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability can not be derived with negative size
+ */
 void test_Syscall_cap_derive_memory_invalid_range2(void)
 {
 	int pid = 0; // Process ID
@@ -333,6 +445,9 @@ void test_Syscall_cap_derive_memory_invalid_range2(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability's range must subset its parent's range.
+ */
 void test_Syscall_cap_derive_memory_invalid_range3(void)
 {
 	int pid = 0; // Process ID
@@ -343,6 +458,9 @@ void test_Syscall_cap_derive_memory_invalid_range3(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability's range must subset its parent's range.
+ */
 void test_Syscall_cap_derive_memory_invalid_range4(void)
 {
 	int pid = 0; // Process ID
@@ -353,6 +471,9 @@ void test_Syscall_cap_derive_memory_invalid_range4(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability's permissions must subset its parent's permissions.
+ */
 void test_Syscall_cap_derive_memory_invalid_perm1(void)
 {
 	int pid = 0; // Process ID
@@ -366,6 +487,9 @@ void test_Syscall_cap_derive_memory_invalid_perm1(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
+/*
+ * Check that a memory capability's permissions must subset its parent's permissions.
+ */
 void test_Syscall_cap_derive_memory_invalid_perm2(void)
 {
 	int pid = 0; // Process ID
@@ -379,15 +503,52 @@ void test_Syscall_cap_derive_memory_invalid_perm2(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
 
-void test_Syscall_cap_delete_pmp(void)
+/*
+ * Check that when deleting a PMP capability, the corresponding PMP configuration is cleared.
+ */
+void test_Syscall_cap_delete_pmp_valid1(void)
 {
 	int pid = 0; // Process ID
 	int src = 0; // Source capability index
-	TEST_ASSERT_EQUAL_UINT64(Cap_pmp_get_addr(ks.ctable[src]), ks.ptable[pid]->pmpaddr[0]);
 	Syscall_cap_delete(&ks, pid, src);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[src]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[pid]->pmpcfg[0]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[pid]->pmpaddr[0]);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+}
+
+/*
+ * Check that when moving a PMP capability, the corresponding PMP configuration is not cleared.
+ */
+void test_Syscall_cap_move_pmp_valid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 0; // Source capability index
+	int dst = 8; // Destination capability index
+	u64 cap = ks.ctable[src];
+	u64 cfg = ks.ptable[pid]->pmpcfg[0];
+	u64 addr = ks.ptable[pid]->pmpaddr[0];
+	Syscall_cap_move(&ks, pid, src, dst);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[src]);
+	TEST_ASSERT_EQUAL_UINT64(cap, ks.ctable[dst]);
+	TEST_ASSERT_EQUAL_UINT64(cfg, ks.ptable[pid]->pmpcfg[0]);
+	TEST_ASSERT_EQUAL_UINT64(addr, ks.ptable[pid]->pmpaddr[0]);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+}
+/*
+ * Check that when revoking a PMP capability, nothing happens.
+ */
+void test_Syscall_cap_revoke_pmp(void)
+{
+	int pid = 0; // Process ID
+	int src = 0; // Source capability index
+	u64 cap = ks.ctable[src];
+	u64 cfg = ks.ptable[pid]->pmpcfg[0];
+	u64 addr = ks.ptable[pid]->pmpaddr[0];
+	Syscall_cap_revoke(&ks, pid, src);
+	TEST_ASSERT_EQUAL_UINT64(cap, ks.ctable[src]);
+	TEST_ASSERT_EQUAL_UINT64(cfg, ks.ptable[pid]->pmpcfg[0]);
+	TEST_ASSERT_EQUAL_UINT64(addr, ks.ptable[pid]->pmpaddr[0]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 }
 
