@@ -7,9 +7,15 @@
 #include "sched.h"
 #include "types.h"
 #include "unity.h"
+#include "rtc.h"
 
 extern struct Types_kstate ks;
 
+/*
+ * Initializes the kernel state with a set of capabilities.
+ * Set the initial process state to ready and the program counter to 0x80010000.
+ * Initializes the RTC time and timeout to zero.
+ */
 void setUp(void)
 {
 	cap_t init_caps[] = {
@@ -29,8 +35,12 @@ void setUp(void)
 
 void tearDown(void)
 {
+	/* nop */
 }
 
+/*
+ * Check that process pid is scheduled between time slots bgn and end.
+ */
 bool check_schedule(pid_t pid, time_slot_t bgn, time_slot_t end)
 {
 	for (time_slot_t i = bgn; i < end; i++) {
@@ -42,6 +52,9 @@ bool check_schedule(pid_t pid, time_slot_t bgn, time_slot_t end)
 	return true;
 }
 
+/*
+ * Check that no process is not scheduled between time slots bgn and end.
+ */
 bool check_schedule_deleted(time_slot_t bgn, time_slot_t end)
 {
 	for (time_slot_t i = bgn; i < end; i++) {
@@ -52,7 +65,10 @@ bool check_schedule_deleted(time_slot_t bgn, time_slot_t end)
 	return true;
 }
 
-void test_mk_memory(void)
+/*
+ * Test that barocq memory capability and C memory capability are serialized identically.
+ */
+void test_cap_memory_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull };
 	cap.type = CAPTY_MEMORY;
@@ -64,8 +80,22 @@ void test_mk_memory(void)
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.lck, Cap_memory_get_lck(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.mrk, Cap_memory_get_mrk(cap.raw));
 }
+/*
+ * Test that barocq memory capability and C memory capability are serialized identically.
+ */
+void test_cap_pmp_serialization(void)
+{
+	cap_t cap = {.raw = 0x123456789abcdef0ull };
+	cap.type = CAPTY_PMP;
+	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.pmp.rwx, Cap_pmp_get_rwx(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.pmp.addr, Cap_pmp_get_addr(cap.raw));
+}
 
-void test_mk_time(void)
+/*
+ * Test that barocq time capability and C time capability are serialized identically.
+ */
+void test_cap_time_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull };
 	cap.type = CAPTY_TIME;
@@ -76,7 +106,10 @@ void test_mk_time(void)
 	TEST_ASSERT_EQUAL_UINT64(cap.time.mrk, Cap_time_get_mrk(cap.raw));
 }
 
-void test_mk_monitor(void)
+/*
+ * Test that barocq monitor capability and C monitor capability are serialized identically.
+ */
+void test_cap_monitor_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull };
 	cap.type = CAPTY_MONITOR;
@@ -87,6 +120,9 @@ void test_mk_monitor(void)
 	TEST_ASSERT_EQUAL_UINT64(cap.mon.mrk, Cap_monitor_get_mrk(cap.raw));
 }
 
+/*
+ * Test that the kernel is setup correctly.
+ */
 void test_Setup(void)
 {
 	uint64_t ram_pmp = pmp_napot_encode(0x80010000, 0x10000);
