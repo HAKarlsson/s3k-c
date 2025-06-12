@@ -217,6 +217,15 @@ defn derive_channel(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
     let ks = Ctable::set_cap(ks, src, cap) in
     let ks = Ctable::insert(ks, dst, ncap, src) in
     ks.errcode <- Error::SUCCESS
+  else if (Cap::get_type(ncap) == Cap::CAPTY_SOCKET)
+      && (Cap::socket_get_tag(ncap) == 0UL)
+      && (Cap::channel_get_mrk(cap) <= Cap::socket_get_chan(ncap))
+      && (Cap::socket_get_chan(ncap) < Cap::channel_get_end(cap))
+  then
+    let cap = Cap::channel_set_mrk(cap, Cap::socket_get_chan(ncap) + 1UL) in
+    let ks = Ctable::set_cap(ks, src, cap) in
+    let ks = Ctable::insert(ks, dst, ncap, src) in
+    ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- Error::INVALID_DERIVATION
 

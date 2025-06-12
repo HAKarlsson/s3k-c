@@ -885,7 +885,7 @@ void test_Syscall_cap_mon_reg_valid1(void)
 }
 
 /*
- * Check that IPC channels can be derived correctly.
+ * Sibling channel derivation
  */
 void test_Syscall_cap_derive_channel_valid1(void)
 {
@@ -916,4 +916,163 @@ void test_Syscall_cap_derive_channel_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ctable[dst2]);
 	TEST_ASSERT_EQUAL_UINT64(cap3.raw, ks.ctable[dst3]);
+}
+
+/*
+ * Yielding socket derivation
+ */
+void test_Syscall_cap_derive_channel_valid3(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int chan = 4;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(chan + 1, Cap_channel_get_mrk(ks.ctable[src]));
+}
+
+/*
+ * No yielding socket derivation
+ */
+void test_Syscall_cap_derive_channel_valid4(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int chan = 4;
+	int mode = Ipc_IPC_NOYIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(cap1.raw, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(chan + 1, Cap_channel_get_mrk(ks.ctable[src]));
+}
+
+/*
+ * Invalid channel range
+ */
+void test_Syscall_cap_derive_channel_invalid1(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	cap_t cap1 = cap_mk_channel(0, 20);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+}
+
+/*
+ * Invalid channel range
+ */
+void test_Syscall_cap_derive_channel_invalid2(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	cap_t cap1 = cap_mk_channel(4, 4);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+}
+
+/*
+ * Invalid socket tag
+ */
+void test_Syscall_cap_derive_channel_invalid3(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int chan = 4;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 1;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
+}
+
+/*
+ * Invalid socket tag
+ */
+void test_Syscall_cap_derive_channel_invalid4(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int chan = 4;
+	int mode = Ipc_IPC_NOYIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 1;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
+}
+
+/*
+ * Invalid socket mode.
+ */
+void test_Syscall_cap_derive_channel_invalid5(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int chan = 4;
+	int mode = 3;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
+}
+
+
+/*
+ * Invalid socket channel
+ */
+void test_Syscall_cap_derive_channel_invalid6(void)
+{
+	int pid = 0; // Process ID
+	int src = 5; // Source capability index
+	int dst1 = 8; // Destination capability index
+	int chan = 8;
+	int mode = Ipc_IPC_YIELD;
+	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int tag = 0;
+	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
+				 Cap_get_type(ks.ctable[src]));
+	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
+	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
+	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
+	TEST_ASSERT_EQUAL_UINT64(0, Cap_channel_get_mrk(ks.ctable[src]));
 }
