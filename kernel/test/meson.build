@@ -1,6 +1,7 @@
 unity_proj = subproject('unity')
 
-unity_lib = static_library(meson.project_name(),
+unity_lib = static_library(
+	  'unity',
   sources: unity_proj.get_variable('unity_src'),
   c_args: unity_proj.get_variable('unity_args'),
   include_directories: unity_proj.get_variable('unity_inc'),

@@ -8,15 +8,15 @@ cap_t cap_mk_time(time_slot_t bgn, time_slot_t end)
 {
 	KASSERT(bgn < end);
 	KASSERT(end <= S3K_SLOT_CNT);
-	return (cap_t) {
-		.time = {
-			.type = CAPTY_TIME,
-			._padding = 0, // Ensure padding is zero
-			.bgn = bgn,
-			.mrk = bgn,
-			.end = end,
-		}
-	};
+	return (cap_t){
+	    .time = {
+		     .type = CAPTY_TIME,
+		     ._padding = 0, // Ensure padding is zero
+		.bgn = bgn,
+		     .mrk = bgn,
+		     .end = end,
+		     }
+	     };
 }
 
 cap_t cap_mk_memory(addr_t bgn, addr_t end, rwx_t rwx)
@@ -24,74 +24,73 @@ cap_t cap_mk_memory(addr_t bgn, addr_t end, rwx_t rwx)
 	uint64_t tag = bgn >> MAX_BLOCK_SIZE;
 	KASSERT(bgn < end);
 	KASSERT(end <= (tag + 1) << MAX_BLOCK_SIZE);
-	return (cap_t) {
-		.mem = {
-			.type = CAPTY_MEMORY,
-			.rwx = rwx,
-			.lck = false,
-			.tag = tag,
-			.bgn = (bgn - (tag << MAX_BLOCK_SIZE)) >> MIN_BLOCK_SIZE,
-			.mrk = (bgn - (tag << MAX_BLOCK_SIZE)) >> MIN_BLOCK_SIZE,
-			.end = (end - (tag << MAX_BLOCK_SIZE)) >> MIN_BLOCK_SIZE,
-		}
-	};
+	return (cap_t){
+	    .mem = {
+		    .type = CAPTY_MEMORY,
+		    .rwx = rwx,
+		    .lck = false,
+		    .tag = tag,
+		    .bgn = (bgn - (tag << MAX_BLOCK_SIZE)) >> MIN_BLOCK_SIZE,
+		    .mrk = (bgn - (tag << MAX_BLOCK_SIZE)) >> MIN_BLOCK_SIZE,
+		    .end = (end - (tag << MAX_BLOCK_SIZE)) >> MIN_BLOCK_SIZE,
+		    }
+	     };
 }
 
 cap_t cap_mk_pmp(napot_t addr, rwx_t rwx)
 {
-	return (cap_t) {
-		.pmp = {
-			.type = CAPTY_PMP,
-			.rwx = rwx,
-			.used = false,
-			.slot = 0,
-			.addr = addr,
-		}
-	};
+	return (cap_t){
+	    .pmp = {
+		    .type = CAPTY_PMP,
+		    .rwx = rwx,
+		    .used = false,
+		    .slot = 0,
+		    .addr = addr,
+		    }
+	     };
 }
 
 cap_t cap_mk_monitor(pid_t bgn, pid_t end)
 {
 	KASSERT(bgn < end);
 	KASSERT(end <= S3K_PROC_CNT);
-	return (cap_t) {
-		.mon = {
-			.type = CAPTY_MONITOR,
-			._padding = 0, // Ensure padding is zero
-			.bgn = bgn,
-			.mrk = bgn,
-			.end = end,
-		}
-	};
+	return (cap_t){
+	    .mon = {
+		    .type = CAPTY_MONITOR,
+		    ._padding = 0, // Ensure padding is zero
+		.bgn = bgn,
+		    .mrk = bgn,
+		    .end = end,
+		    }
+	     };
 }
 
 cap_t cap_mk_channel(chan_t bgn, chan_t end)
 {
 	KASSERT(bgn < end);
 	KASSERT(end <= S3K_CHAN_CNT);
-	return (cap_t) {
-		.chan = {
-			.type = CAPTY_CHANNEL,
-			._padding = 0, // Ensure padding is zero
-			.bgn = bgn,
-			.mrk = bgn,
-			.end = end,
-		}
-	};
+	return (cap_t){
+	    .chan = {
+		     .type = CAPTY_CHANNEL,
+		     ._padding = 0, // Ensure padding is zero
+		.bgn = bgn,
+		     .mrk = bgn,
+		     .end = end,
+		     }
+	     };
 }
 
-cap_t cap_mk_socket(chan_t chan, ipc_mode_t mode, ipc_perm_t perm,
-		   uint32_t tag)
+cap_t cap_mk_socket(chan_t chan, ipc_mode_t mode, ipc_perm_t perm, uint32_t tag)
 {
-	return (cap_t) {
-		.sock = {
-			.type = CAPTY_SOCKET,
-			.mode = mode,
-			.perm = perm,
-			.chan = chan,
-			.tag = tag,
-		}
-	};	
+	return (cap_t){
+	    .sock = {
+		     .type = CAPTY_SOCKET,
+		     .mode = mode,
+		     .perm = perm,
+		     .chan = chan,
+		     .tag = tag,
+		     }
+	     };
 }
 
 const char *rwx2str(rwx_t rwx)

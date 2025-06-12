@@ -4,10 +4,10 @@
 #include "machine.h"
 #include "pmp.h"
 #include "proc.h"
+#include "rtc.h"
 #include "sched.h"
 #include "types.h"
 #include "unity.h"
-#include "rtc.h"
 
 extern struct Types_kstate ks;
 
@@ -70,7 +70,7 @@ bool check_schedule_deleted(time_slot_t bgn, time_slot_t end)
  */
 void test_cap_memory_serialization(void)
 {
-	cap_t cap = {.raw = 0x123456789abcdef0ull };
+	cap_t cap = {.raw = 0x123456789abcdef0ull};
 	cap.type = CAPTY_MEMORY;
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.rwx, Cap_memory_get_rwx(cap.raw));
@@ -80,12 +80,13 @@ void test_cap_memory_serialization(void)
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.lck, Cap_memory_get_lck(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.mrk, Cap_memory_get_mrk(cap.raw));
 }
+
 /*
  * Test that barocq memory capability and C memory capability are serialized identically.
  */
 void test_cap_pmp_serialization(void)
 {
-	cap_t cap = {.raw = 0x123456789abcdef0ull };
+	cap_t cap = {.raw = 0x123456789abcdef0ull};
 	cap.type = CAPTY_PMP;
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.pmp.rwx, Cap_pmp_get_rwx(cap.raw));
@@ -97,7 +98,7 @@ void test_cap_pmp_serialization(void)
  */
 void test_cap_time_serialization(void)
 {
-	cap_t cap = {.raw = 0x123456789abcdef0ull };
+	cap_t cap = {.raw = 0x123456789abcdef0ull};
 	cap.type = CAPTY_TIME;
 	cap.time._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
@@ -111,7 +112,7 @@ void test_cap_time_serialization(void)
  */
 void test_cap_monitor_serialization(void)
 {
-	cap_t cap = {.raw = 0x123456789abcdef0ull };
+	cap_t cap = {.raw = 0x123456789abcdef0ull};
 	cap.type = CAPTY_MONITOR;
 	cap.mon._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
@@ -133,10 +134,11 @@ void test_Setup(void)
 	    cap_mk_time(0, S3K_SLOT_CNT).raw,
 	    cap_mk_monitor(0, S3K_PROC_CNT).raw,
 	};
-	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0); // Set slot to 0
+	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0);    // Set slot to 0
 	init_caps[0] = Cap_pmp_set_used(init_caps[0], true); // Set slot to 0
 
-	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable, ARRAY_SIZE(init_caps));
+	TEST_ASSERT_EQUAL_UINT64_ARRAY(init_caps, ks.ctable,
+				       ARRAY_SIZE(init_caps));
 
 	// Check PC initialized to 0x80010000
 	TEST_ASSERT_EQUAL_UINT64(ks.ptable[0]->pc, 0x80010000);
@@ -152,7 +154,8 @@ void test_Setup(void)
 
 	// Check other processes
 	for (int i = 1; i < S3K_PROC_CNT; i++) {
-		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->state, Proc_PSF_SUSPENDED);
+		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->state,
+					 Proc_PSF_SUSPENDED);
 		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->pid, i);
 		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->pc, 0);
 		for (int j = 0; j < S3K_PMP_CNT; j++) {
@@ -177,7 +180,8 @@ void test_Syscall_cap_read(void)
 			TEST_ASSERT_EQUAL_UINT64(Error_EMPTY, ks.ptable[0]->t0);
 			TEST_ASSERT_EQUAL_UINT64(a0, ks.ptable[0]->a0);
 		} else {
-			TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[0]->t0);
+			TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS,
+						 ks.ptable[0]->t0);
 			TEST_ASSERT_EQUAL_UINT64(cap, ks.ptable[0]->a0);
 		}
 	}
@@ -207,6 +211,7 @@ void test_Syscall_cap_move_invalid1(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[0]->t0);
 	TEST_ASSERT_EQUAL_UINT64(cap0, ks.ctable[0]);
 }
+
 /*
  * Check that Syscall_cap_move moves the capability colliding with an existing one
  */
@@ -317,8 +322,8 @@ void test_Syscall_cap_derive_memory_valid2(void)
  */
 void test_Syscall_cap_derive_memory_valid3(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
@@ -333,8 +338,8 @@ void test_Syscall_cap_derive_memory_valid3(void)
  */
 void test_Syscall_cap_derive_memory_valid4(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
@@ -349,8 +354,8 @@ void test_Syscall_cap_derive_memory_valid4(void)
  */
 void test_Syscall_cap_derive_memory_invalid_double1(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
@@ -365,8 +370,8 @@ void test_Syscall_cap_derive_memory_invalid_double1(void)
  */
 void test_Syscall_cap_derive_memory_invalid_tripple(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	int dst3 = 8; // Another destination capability index
@@ -384,8 +389,8 @@ void test_Syscall_cap_derive_memory_invalid_tripple(void)
  */
 void test_Syscall_cap_derive_memory_invalid_dest1(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;		      // Process ID
+	int src = 1;		      // Source capability index
 	int dst = Config_S3K_CAP_CNT; // Destination capability index
 	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
@@ -476,8 +481,8 @@ void test_Syscall_cap_derive_memory_invalid_range4(void)
  */
 void test_Syscall_cap_derive_memory_invalid_perm1(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
@@ -492,8 +497,8 @@ void test_Syscall_cap_derive_memory_invalid_perm1(void)
  */
 void test_Syscall_cap_derive_memory_invalid_perm2(void)
 {
-	int pid = 0; // Process ID
-	int src = 1; // Source capability index
+	int pid = 0;  // Process ID
+	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
@@ -535,6 +540,7 @@ void test_Syscall_cap_move_pmp_valid1(void)
 	TEST_ASSERT_EQUAL_UINT64(addr, ks.ptable[pid]->pmpaddr[0]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 }
+
 /*
  * Check that when revoking a PMP capability, nothing happens.
  */
@@ -621,9 +627,9 @@ void test_Syscall_cap_revoke_time1(void)
 {
 	rtc_time_set(0);
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst = 8; // Destination capability index
+	int pid = 0;		  // Process ID
+	int src = 3;		  // Source capability index
+	int dst = 8;		  // Destination capability index
 	cap_t cap = cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
@@ -640,9 +646,9 @@ void test_Syscall_cap_revoke_time2(void)
 {
 	rtc_time_set(0);
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst = 8; // Destination capability index
+	int pid = 0;		  // Process ID
+	int src = 3;		  // Source capability index
+	int dst = 8;		  // Destination capability index
 	cap_t cap = cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
@@ -659,10 +665,10 @@ void test_Syscall_cap_revoke_time3(void)
 {
 	rtc_time_set(0);
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;		  // Process ID
+	int src = 3;		  // Source capability index
+	int dst1 = 8;		  // Destination capability index
+	int dst2 = 9;		  // Destination capability index
 	cap_t cap1 = cap_mk_time(0, 16);
 	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
@@ -685,10 +691,10 @@ void test_Syscall_cap_revoke_time4(void)
 {
 	rtc_time_set(0);
 	rtc_timeout_set(0, 1000); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;		  // Process ID
+	int src = 3;		  // Source capability index
+	int dst1 = 8;		  // Destination capability index
+	int dst2 = 9;		  // Destination capability index
 	cap_t cap1 = cap_mk_time(0, 16);
 	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
@@ -720,10 +726,10 @@ void test_Syscall_cap_revoke_time5(void)
 {
 	rtc_time_set(1);
 	rtc_timeout_set(0, 0); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;	       // Process ID
+	int src = 3;	       // Source capability index
+	int dst1 = 8;	       // Destination capability index
+	int dst2 = 9;	       // Destination capability index
 	cap_t cap1 = cap_mk_time(0, 16);
 	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
@@ -742,10 +748,10 @@ void test_Syscall_cap_revoke_time6(void)
 	// Check that revoke deletes at least one child
 	rtc_time_set(1);
 	rtc_timeout_set(0, 0); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
+	int pid = 0;	       // Process ID
+	int src = 3;	       // Source capability index
+	int dst1 = 8;	       // Destination capability index
+	int dst2 = 9;	       // Destination capability index
 	cap_t cap1 = cap_mk_time(0, 16);
 	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
@@ -766,11 +772,11 @@ void test_Syscall_cap_revoke_time7(void)
 	// Check that revoke deletes at least one child
 	rtc_time_set(0);
 	rtc_timeout_set(0, 100); // Reset timeout
-	int pid = 0; // Process ID
-	int src = 3; // Source capability index
-	int dst1 = 8; // Destination capability index
-	int dst2 = 9; // Destination capability index
-	int dst3 = 10; // Destination capability index
+	int pid = 0;		 // Process ID
+	int src = 3;		 // Source capability index
+	int dst1 = 8;		 // Destination capability index
+	int dst2 = 9;		 // Destination capability index
+	int dst3 = 10;		 // Destination capability index
 	cap_t cap1 = cap_mk_time(0, 16);
 	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);

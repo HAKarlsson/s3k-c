@@ -1,12 +1,13 @@
+#include "cap/util.h"
 #include "csr.h"
-#include "rtc.h"
 #include "libkernel.h"
-#include <stdio.h>
+#include "machine.h"
 #include "pmp.h"
 #include "proc.h"
-#include "cap/util.h"
+#include "rtc.h"
 #include "sched.h"
-#include "machine.h"
+
+#include <stdio.h>
 
 static uint64_t __mtime[1];
 static uint64_t __mtimecmp[8];
@@ -60,18 +61,22 @@ void csrw_pmpaddr5(word_t addr)
 {
 	pmpaddr[5] = addr;
 }
+
 void csrw_pmpaddr6(word_t addr)
 {
 	pmpaddr[6] = addr;
 }
+
 void csrw_pmpaddr7(word_t addr)
 {
 	pmpaddr[7] = addr;
 }
+
 void csrw_pmpcfg0(word_t cfg)
 {
 	pmpcfg[0] = cfg;
 }
+
 void csrw_pmpcfg1(word_t cfg)
 {
 	pmpcfg[1] = cfg;
