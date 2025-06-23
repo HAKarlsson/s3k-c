@@ -44,8 +44,8 @@ defn REG_EPC : u64 = 34UL
 defn REG_ESP : u64 = 35UL
 defn REG_COUNT : u64 = 36UL
 
-(* Encodes an unexisting process. Must be Config::S3K_PROC_CNT + 1 *)
-defn NULL : pid_t = 3UL
+(* Encodes an unexisting process. *)
+defn NULL : pid_t = -1UL
 
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in

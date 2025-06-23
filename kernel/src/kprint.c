@@ -1,6 +1,7 @@
 #include "kprint.h"
 
 #include "cap/util.h"
+#include "libkernel.h"
 
 #include <stdarg.h>
 
@@ -64,70 +65,48 @@ void _print_dec(unsigned long long x, bool neg)
 
 void _print_err(err_t e)
 {
-	switch (e) {
-	case SUCCESS:
+	if (e == Error_SUCCESS)
 		kprintf("SUCCESS");
-		break;
-	case ERR_EMPTY:
-		kprintf("ERR_EMPTY");
-		break;
-	case ERR_SRC_EMPTY:
-		kprintf("ERR_SRC_EMPTY");
-		break;
-	case ERR_DST_OCCUPIED:
-		kprintf("ERR_DIST_OCCUPIED");
-		break;
-	case ERR_INVALID_INDEX:
-		kprintf("ERR_INVALID_INDEX");
-		break;
-	case ERR_INVALID_DERIVATION:
-		kprintf("ERR_INVALID_DERIVATION");
-		break;
-	case ERR_INVALID_MONITOR:
-		kprintf("ERR_INVALID_MONITOR");
-		break;
-	case ERR_INVALID_PID:
-		kprintf("ERR_INVALID_PID");
-		break;
-	case ERR_INVALID_STATE:
-		kprintf("ERR_INVALID_STATE");
-		break;
-	case ERR_INVALID_PMP:
-		kprintf("ERR_INVALID_PMP");
-		break;
-	case ERR_INVALID_SLOT:
-		kprintf("ERR_INVALID_SLOT");
-		break;
-	case ERR_INVALID_SOCKET:
-		kprintf("ERR_INVALID_SOCKET");
-		break;
-	case ERR_INVALID_SYSCALL:
-		kprintf("ERR_INVALID_SYSCALL");
-		break;
-	case ERR_INVALID_REGISTER:
-		kprintf("ERR_INVALID_REGISTER");
-		break;
-	case ERR_INVALID_CAPABILITY:
-		kprintf("ERR_INVALID_CAPABILITY");
-		break;
-	case ERR_NO_RECEIVER:
-		kprintf("ERR_NO_RECEIVER");
-		break;
-	case ERR_PREEMPTED:
-		kprintf("ERR_PREEMPTED");
-		break;
-	case ERR_TIMEOUT:
-		kprintf("ERR_TIMEOUT");
-		break;
-	case ERR_SUSPENDED:
-		kprintf("ERR_SUSPENDED");
-		break;
-	case CONTINUE:
+	else if (e == Error_EMPTY)
+		kprintf("Error_EMPTY");
+	else if (e == Error_SRC_EMPTY)
+		kprintf("Error_SRC_EMPTY");
+	else if (e == Error_DST_OCCUPIED)
+		kprintf("Error_DIST_OCCUPIED");
+	else if (e == Error_INVALID_INDEX)
+		kprintf("Error_INVALID_INDEX");
+	else if (e == Error_INVALID_DERIVATION)
+		kprintf("Error_INVALID_DERIVATION");
+	else if (e == Error_INVALID_MONITOR)
+		kprintf("Error_INVALID_MONITOR");
+	else if (e == Error_INVALID_PID)
+		kprintf("Error_INVALID_PID");
+	else if (e == Error_INVALID_STATE)
+		kprintf("Error_INVALID_STATE");
+	else if (e == Error_INVALID_PMP)
+		kprintf("Error_INVALID_PMP");
+	else if (e == Error_INVALID_SLOT)
+		kprintf("Error_INVALID_SLOT");
+	else if (e == Error_INVALID_SOCKET)
+		kprintf("Error_INVALID_SOCKET");
+	else if (e == Error_INVALID_SYSCALL)
+		kprintf("Error_INVALID_SYSCALL");
+	else if (e == Error_INVALID_REGISTER)
+		kprintf("Error_INVALID_REGISTER");
+	else if (e == Error_INVALID_CAPABILITY)
+		kprintf("Error_INVALID_CAPABILITY");
+	else if (e == Error_NO_RECEIVER)
+		kprintf("Error_NO_RECEIVER");
+	else if (e == Error_PREEMPTED)
+		kprintf("Error_PREEMPTED");
+	else if (e == Error_TIMEOUT)
+		kprintf("Error_TIMEOUT");
+	else if (e == Error_SUSPENDED)
+		kprintf("Error_SUSPENDED");
+	else if (e == Error_CONTINUE)
 		kprintf("CONTINUE");
-		break;
-	default:
-		break;
-	}
+	else
+		kprintf("UNKNOWN");
 }
 
 void kprintf(const char *fmt, ...)
@@ -175,15 +154,11 @@ void kprintf(const char *fmt, ...)
 			kputc(c);
 		} break;
 		case 'C': {
-			cap_t *c = va_arg(ap, cap_t *);
+			cap_t c = va_arg(ap, cap_t);
 			cap_print(c);
 		} break;
-		case 'P': {
-			unsigned long long c = va_arg(ap, unsigned long long);
-			Cap_print(c);
-		} break;
 		case 'e': {
-			unsigned int e = va_arg(ap, unsigned int);
+			err_t e = va_arg(ap, unsigned int);
 			_print_err(e);
 		} break;
 		case 's': {

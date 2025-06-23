@@ -6,5 +6,5 @@ libkernel_c = custom_target(
     'libkernel_c',
     input: br_srcs,
     output: ['libkernel.c', 'libkernel.h'],
-    command: [barocq, '@INPUT@', '-o', '@OUTPUT0@', '-gen-header'],
+    command: [barocq, '@INPUT@', '-o', '@OUTPUT0@', '-gen-header']
 )

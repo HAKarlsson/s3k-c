@@ -20,11 +20,7 @@ endif
 
 sources = files(
     platdir / 'plat.c',
-    'src/cap/ipc.c',
-    'src/cap/monitor.c',
     'src/cap/ops.c',
-    'src/cap/pmp.c',
-    'src/cap/table.c',
     'src/cap/util.c',
     'src/csr.c',
     'src/exception.c',
@@ -58,7 +54,6 @@ link_args = [
     '-fno-builtin',
     '-T' + platdir / 'linker.ld',
 ]
-
 
 subdir('brc')
 

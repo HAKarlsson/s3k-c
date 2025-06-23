@@ -1,10 +1,22 @@
 module Config
 
-defn S3K_SLOT_CNT : u64 = 32UL
+(* Number of processes *)
 defn S3K_PROC_CNT : u64 = 8UL
+
+(* Number of capabilities per process *)
 defn S3K_CAP_CNT : u64 = 32UL
-defn S3K_PMP_CNT : u64 = 8UL
+
+(* Number of channels *)
 defn S3K_CHAN_CNT : u64 = 8UL
 
+(* Number of time slots *)
+defn S3K_SLOT_CNT : u64 = 32UL
+
+(* Number of PMP slots *)
+defn S3K_PMP_CNT : u64 = 8UL
+
+(* Min logarithmic size of a memory slice *)
 defn MIN_BLOCK_SIZE : u64 = 12UL
+
+(* Max logarithmic size of a memory slice *)
 defn MAX_BLOCK_SIZE : u64 = 27UL

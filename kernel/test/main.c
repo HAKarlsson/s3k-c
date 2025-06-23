@@ -2,7 +2,6 @@
 #include "kstate.h"
 #include "libkernel.h"
 #include "machine.h"
-#include "pmp.h"
 #include "proc.h"
 #include "rtc.h"
 #include "sched.h"
@@ -19,12 +18,13 @@ extern struct Types_kstate ks;
 void setUp(void)
 {
 	cap_t init_caps[] = {
-	    cap_mk_pmp(pmp_napot_encode(0x80010000, 0x10000), MEM_RWX),
-	    cap_mk_memory(0x80020000, 0x80100000, MEM_RWX),
-	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
-	    cap_mk_time(0, Config_S3K_SLOT_CNT),
-	    cap_mk_monitor(0, Config_S3K_PROC_CNT),
-	    cap_mk_channel(0, Config_S3K_CHAN_CNT),
+	    Util_cap_mk_pmp(Util_pmp_napot_encode(0x80010000, 0x10000),
+			    MEM_RWX),
+	    Util_cap_mk_memory(0x80020000, 0x80100000, MEM_RWX),
+	    Util_cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
+	    Util_cap_mk_time(0, Config_S3K_SLOT_CNT),
+	    Util_cap_mk_monitor(0, Config_S3K_PROC_CNT),
+	    Util_cap_mk_channel(0, Config_S3K_CHAN_CNT),
 	};
 	kstate_init(init_caps, ARRAY_SIZE(init_caps));
 	ks.ptable[0]->pc = 0x80010000;
@@ -72,7 +72,7 @@ bool check_schedule_deleted(time_slot_t bgn, time_slot_t end)
 void test_cap_memory_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull};
-	cap.type = CAPTY_MEMORY;
+	cap.type = Cap_CAPTY_MEMORY;
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.rwx, Cap_memory_get_rwx(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.bgn, Cap_memory_get_bgn(cap.raw));
@@ -88,7 +88,7 @@ void test_cap_memory_serialization(void)
 void test_cap_pmp_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull};
-	cap.type = CAPTY_PMP;
+	cap.type = Cap_CAPTY_PMP;
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.pmp.rwx, Cap_pmp_get_rwx(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.pmp.addr, Cap_pmp_get_addr(cap.raw));
@@ -100,7 +100,7 @@ void test_cap_pmp_serialization(void)
 void test_cap_time_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull};
-	cap.type = CAPTY_TIME;
+	cap.type = Cap_CAPTY_TIME;
 	cap.time._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.time.bgn, Cap_time_get_bgn(cap.raw));
@@ -114,7 +114,7 @@ void test_cap_time_serialization(void)
 void test_cap_monitor_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull};
-	cap.type = CAPTY_MONITOR;
+	cap.type = Cap_CAPTY_MONITOR;
 	cap.mon._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mon.bgn, Cap_monitor_get_bgn(cap.raw));
@@ -128,7 +128,7 @@ void test_cap_monitor_serialization(void)
 void test_cap_channel_serialization(void)
 {
 	cap_t cap = {.raw = 0x123456789abcdef0ull};
-	cap.type = CAPTY_CHANNEL;
+	cap.type = Cap_CAPTY_CHANNEL;
 	cap.chan._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.chan.bgn, Cap_channel_get_bgn(cap.raw));
@@ -141,14 +141,14 @@ void test_cap_channel_serialization(void)
  */
 void test_Setup(void)
 {
-	uint64_t ram_pmp = pmp_napot_encode(0x80010000, 0x10000);
+	uint64_t ram_pmp = Util_pmp_napot_encode(0x80010000, 0x10000);
 	u64 init_caps[] = {
-	    cap_mk_pmp(ram_pmp, MEM_RWX).raw,
-	    cap_mk_memory(0x80020000, 0x80100000, MEM_RWX).raw,
-	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW).raw,
-	    cap_mk_time(0, Config_S3K_SLOT_CNT).raw,
-	    cap_mk_monitor(0, Config_S3K_PROC_CNT).raw,
-	    cap_mk_channel(0, Config_S3K_CHAN_CNT).raw,
+	    Util_cap_mk_pmp(ram_pmp, MEM_RWX).raw,
+	    Util_cap_mk_memory(0x80020000, 0x80100000, MEM_RWX).raw,
+	    Util_cap_mk_memory(0x10000000, 0x10010000, MEM_RW).raw,
+	    Util_cap_mk_time(0, Config_S3K_SLOT_CNT).raw,
+	    Util_cap_mk_monitor(0, Config_S3K_PROC_CNT).raw,
+	    Util_cap_mk_channel(0, Config_S3K_CHAN_CNT).raw,
 	};
 	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0);    // Set slot to 0
 	init_caps[0] = Cap_pmp_set_used(init_caps[0], true); // Set slot to 0
@@ -311,7 +311,7 @@ void test_Syscall_cap_derive_memory_valid1(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 8; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
@@ -326,7 +326,7 @@ void test_Syscall_cap_derive_memory_valid2(void)
 	int pid = 0; // Process ID
 	int src = 2; // Source capability index
 	int dst = 8; // Destination capability index
-	cap_t cap = cap_mk_memory(0x10000000, 0x10001000, MEM_RW);
+	cap_t cap = Util_cap_mk_memory(0x10000000, 0x10001000, MEM_RW);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
@@ -342,8 +342,8 @@ void test_Syscall_cap_derive_memory_valid3(void)
 	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
-	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
-	cap_t cap2 = cap_mk_memory(0x80040000, 0x80080000, MEM_RW);
+	cap_t cap1 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = Util_cap_mk_memory(0x80040000, 0x80080000, MEM_RW);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
@@ -358,8 +358,8 @@ void test_Syscall_cap_derive_memory_valid4(void)
 	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
-	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
-	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
+	cap_t cap1 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_R);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
@@ -374,8 +374,8 @@ void test_Syscall_cap_derive_memory_invalid_double1(void)
 	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
-	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
-	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap1 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
@@ -391,9 +391,10 @@ void test_Syscall_cap_derive_memory_invalid_tripple(void)
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
 	int dst3 = 8; // Another destination capability index
-	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
-	cap_t cap2 = cap_mk_pmp(pmp_napot_encode(0x80040000, 0x10000), MEM_RWX);
-	cap_t cap3 = cap_mk_memory(0x80040000, 0x80080000, MEM_RW);
+	cap_t cap1 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap2 = Util_cap_mk_pmp(Util_pmp_napot_encode(0x80040000, 0x10000),
+				     MEM_RWX);
+	cap_t cap3 = Util_cap_mk_memory(0x80040000, 0x80080000, MEM_RW);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, src, dst2, cap2.raw);
 	Syscall_cap_derive(&ks, pid, src, dst3, cap3.raw);
@@ -408,7 +409,7 @@ void test_Syscall_cap_derive_memory_invalid_dest1(void)
 	int pid = 0;		      // Process ID
 	int src = 1;		      // Source capability index
 	int dst = Config_S3K_CAP_CNT; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_INDEX, ks.ptable[pid]->t0);
@@ -422,7 +423,7 @@ void test_Syscall_cap_derive_memory_invalid_dest2(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 2; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[pid]->t0);
 }
@@ -435,7 +436,7 @@ void test_Syscall_cap_derive_memory_invalid_dest3(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 1; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80030000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_DST_OCCUPIED, ks.ptable[pid]->t0);
 }
@@ -448,7 +449,7 @@ void test_Syscall_cap_derive_memory_invalid_range1(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 6; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80020000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80020000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
@@ -461,7 +462,7 @@ void test_Syscall_cap_derive_memory_invalid_range2(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 6; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80010000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80010000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
@@ -474,7 +475,7 @@ void test_Syscall_cap_derive_memory_invalid_range3(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 6; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80010000, 0x80040000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80010000, 0x80040000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
@@ -487,7 +488,7 @@ void test_Syscall_cap_derive_memory_invalid_range4(void)
 	int pid = 0; // Process ID
 	int src = 1; // Source capability index
 	int dst = 6; // Destination capability index
-	cap_t cap = cap_mk_memory(0x80020000, 0x80140000, MEM_RWX);
+	cap_t cap = Util_cap_mk_memory(0x80020000, 0x80140000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
 }
@@ -501,8 +502,8 @@ void test_Syscall_cap_derive_memory_invalid_perm1(void)
 	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
-	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
-	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RWX);
+	cap_t cap1 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_R);
+	cap_t cap2 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RWX);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
@@ -517,8 +518,8 @@ void test_Syscall_cap_derive_memory_invalid_perm2(void)
 	int src = 1;  // Source capability index
 	int dst1 = 6; // Destination capability index
 	int dst2 = 7; // Another destination capability index
-	cap_t cap1 = cap_mk_memory(0x80020000, 0x80040000, MEM_R);
-	cap_t cap2 = cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
+	cap_t cap1 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_R);
+	cap_t cap2 = Util_cap_mk_memory(0x80020000, 0x80040000, MEM_RW);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, pid, dst1, dst2, cap2.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_INVALID_DERIVATION, ks.ptable[pid]->t0);
@@ -582,7 +583,7 @@ void test_Syscall_cap_derive_time_valid1(void)
 	int pid = 0; // Process ID
 	int src = 3; // Source capability index
 	int dst = 8; // Destination capability index
-	cap_t cap = cap_mk_time(0, 16);
+	cap_t cap = Util_cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
@@ -612,7 +613,7 @@ void test_Syscall_cap_derive_delete_time1(void)
 	int pid = 0; // Process ID
 	int src = 3; // Source capability index
 	int dst = 8; // Destination capability index
-	cap_t cap = cap_mk_time(0, 16);
+	cap_t cap = Util_cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	Syscall_cap_delete(&ks, pid, src);
@@ -628,7 +629,7 @@ void test_Syscall_cap_derive_delete_time2(void)
 	int pid = 0; // Process ID
 	int src = 3; // Source capability index
 	int dst = 8; // Destination capability index
-	cap_t cap = cap_mk_time(0, 16);
+	cap_t cap = Util_cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	Syscall_cap_delete(&ks, pid, dst);
@@ -646,7 +647,7 @@ void test_Syscall_cap_revoke_time1(void)
 	int pid = 0;		  // Process ID
 	int src = 3;		  // Source capability index
 	int dst = 8;		  // Destination capability index
-	cap_t cap = cap_mk_time(0, 16);
+	cap_t cap = Util_cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	Syscall_cap_revoke(&ks, pid, dst);
@@ -665,7 +666,7 @@ void test_Syscall_cap_revoke_time2(void)
 	int pid = 0;		  // Process ID
 	int src = 3;		  // Source capability index
 	int dst = 8;		  // Destination capability index
-	cap_t cap = cap_mk_time(0, 16);
+	cap_t cap = Util_cap_mk_time(0, 16);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
 	Syscall_cap_revoke(&ks, pid, src);
@@ -685,8 +686,8 @@ void test_Syscall_cap_revoke_time3(void)
 	int src = 3;		  // Source capability index
 	int dst1 = 8;		  // Destination capability index
 	int dst2 = 9;		  // Destination capability index
-	cap_t cap1 = cap_mk_time(0, 16);
-	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	cap_t cap1 = Util_cap_mk_time(0, 16);
+	cap_t cap2 = Util_cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -711,8 +712,8 @@ void test_Syscall_cap_revoke_time4(void)
 	int src = 3;		  // Source capability index
 	int dst1 = 8;		  // Destination capability index
 	int dst2 = 9;		  // Destination capability index
-	cap_t cap1 = cap_mk_time(0, 16);
-	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	cap_t cap1 = Util_cap_mk_time(0, 16);
+	cap_t cap2 = Util_cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -746,8 +747,8 @@ void test_Syscall_cap_revoke_time5(void)
 	int src = 3;	       // Source capability index
 	int dst1 = 8;	       // Destination capability index
 	int dst2 = 9;	       // Destination capability index
-	cap_t cap1 = cap_mk_time(0, 16);
-	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	cap_t cap1 = Util_cap_mk_time(0, 16);
+	cap_t cap2 = Util_cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -768,8 +769,8 @@ void test_Syscall_cap_revoke_time6(void)
 	int src = 3;	       // Source capability index
 	int dst1 = 8;	       // Destination capability index
 	int dst2 = 9;	       // Destination capability index
-	cap_t cap1 = cap_mk_time(0, 16);
-	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	cap_t cap1 = Util_cap_mk_time(0, 16);
+	cap_t cap2 = Util_cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -793,8 +794,8 @@ void test_Syscall_cap_revoke_time7(void)
 	int dst1 = 8;		 // Destination capability index
 	int dst2 = 9;		 // Destination capability index
 	int dst3 = 10;		 // Destination capability index
-	cap_t cap1 = cap_mk_time(0, 16);
-	cap_t cap2 = cap_mk_time(16, S3K_SLOT_CNT);
+	cap_t cap1 = Util_cap_mk_time(0, 16);
+	cap_t cap2 = Util_cap_mk_time(16, S3K_SLOT_CNT);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst1]);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst2]);
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -817,9 +818,9 @@ void test_Syscall_cap_derive_monitor_valid1(void)
 	int dst1 = 8;  // Destination capability index
 	int dst2 = 9;  // Destination capability index
 	int dst3 = 10; // Destination capability index
-	cap_t cap1 = cap_mk_monitor(0, 8);
-	cap_t cap2 = cap_mk_monitor(0, 4);
-	cap_t cap3 = cap_mk_monitor(4, 8);
+	cap_t cap1 = Util_cap_mk_monitor(0, 8);
+	cap_t cap2 = Util_cap_mk_monitor(0, 4);
+	cap_t cap3 = Util_cap_mk_monitor(4, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -849,7 +850,7 @@ void test_Syscall_cap_revoke_monitor_valid1(void)
 	int pid = 0;  // Process ID
 	int src = 4;  // Source capability index
 	int dst1 = 8; // Destination capability index
-	cap_t cap1 = cap_mk_monitor(0, 8);
+	cap_t cap1 = Util_cap_mk_monitor(0, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -869,7 +870,7 @@ void test_Syscall_cap_revoke_monitor_valid2(void)
 	int pid = 0;  // Process ID
 	int src = 4;  // Source capability index
 	int dst1 = 8; // Destination capability index
-	cap_t cap1 = cap_mk_monitor(0, 8);
+	cap_t cap1 = Util_cap_mk_monitor(0, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_MONITOR,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -935,9 +936,9 @@ void test_Syscall_cap_derive_channel_valid1(void)
 	int dst1 = 8;  // Destination capability index
 	int dst2 = 9;  // Destination capability index
 	int dst3 = 10; // Destination capability index
-	cap_t cap1 = cap_mk_channel(0, 8);
-	cap_t cap2 = cap_mk_channel(0, 4);
-	cap_t cap3 = cap_mk_channel(4, 8);
+	cap_t cap1 = Util_cap_mk_channel(0, 8);
+	cap_t cap2 = Util_cap_mk_channel(0, 4);
+	cap_t cap3 = Util_cap_mk_channel(4, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -971,7 +972,7 @@ void test_Syscall_cap_derive_channel_valid3(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -992,7 +993,7 @@ void test_Syscall_cap_derive_channel_valid4(void)
 	int mode = Ipc_IPC_NOYIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1009,7 +1010,7 @@ void test_Syscall_cap_derive_channel_invalid1(void)
 	int pid = 0;  // Process ID
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
-	cap_t cap1 = cap_mk_channel(0, 20);
+	cap_t cap1 = Util_cap_mk_channel(0, 20);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1025,7 +1026,7 @@ void test_Syscall_cap_derive_channel_invalid2(void)
 	int pid = 0;  // Process ID
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
-	cap_t cap1 = cap_mk_channel(4, 4);
+	cap_t cap1 = Util_cap_mk_channel(4, 4);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1045,7 +1046,7 @@ void test_Syscall_cap_derive_channel_invalid3(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 1;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1066,7 +1067,7 @@ void test_Syscall_cap_derive_channel_invalid4(void)
 	int mode = Ipc_IPC_NOYIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 1;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1087,7 +1088,7 @@ void test_Syscall_cap_derive_channel_invalid5(void)
 	int mode = 3;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1108,7 +1109,7 @@ void test_Syscall_cap_derive_channel_invalid6(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1125,7 +1126,7 @@ void test_Syscall_cap_revoke_channel_valid1(void)
 	int pid = 0;  // Process ID
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
-	cap_t cap1 = cap_mk_channel(0, 8);
+	cap_t cap1 = Util_cap_mk_channel(0, 8);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1152,8 +1153,8 @@ void test_Syscall_cap_revoke_channel_success1(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0;
-	cap_t cap1 = cap_mk_channel(0, 8);
-	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_channel(0, 8);
+	cap_t cap2 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1181,8 +1182,8 @@ void test_Syscall_cap_revoke_channel_preempted1(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0;
-	cap_t cap1 = cap_mk_channel(0, 8);
-	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_channel(0, 8);
+	cap_t cap2 = Util_cap_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1204,8 +1205,8 @@ void test_Syscall_cap_socket_derive_success1(void)
 	int chan = 4;
 	int mode = Ipc_IPC_NOYIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, 0);
-	cap_t cap2 = cap_mk_socket(chan, mode, perm, 1);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, 0);
+	cap_t cap2 = Util_cap_mk_socket(chan, mode, perm, 1);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
 				 Cap_get_type(ks.ctable[src]));
 	Syscall_cap_derive(&ks, pid, src, dst1, cap1.raw);
@@ -1229,8 +1230,8 @@ void test_Syscall_sock_send_success1(void)
 	int mode = Ipc_IPC_NOYIELD;
 	int perm = 0;
 	int tag = 0xbeef;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, 0);
-	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, 0);
+	cap_t cap2 = Util_cap_mk_socket(chan, mode, perm, tag);
 	Syscall_cap_derive(&ks, server, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, server, dst1, dst2, cap2.raw);
 	Syscall_mon_cap_move(&ks, server, 4, server, dst2, client, dst2);
@@ -1273,8 +1274,8 @@ void test_Syscall_sock_send_success2(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP;
 	int tag = 0xbeef;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, 0);
-	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, 0);
+	cap_t cap2 = Util_cap_mk_socket(chan, mode, perm, tag);
 	Syscall_cap_derive(&ks, server, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, server, dst1, dst2, cap2.raw);
 	Syscall_mon_cap_move(&ks, server, 4, server, dst2, client, dst2);
@@ -1318,8 +1319,8 @@ void test_Syscall_sock_send_success3(void)
 	int mode = Ipc_IPC_YIELD;
 	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
 	int tag = 0xbeef;
-	cap_t cap1 = cap_mk_socket(chan, mode, perm, 0);
-	cap_t cap2 = cap_mk_socket(chan, mode, perm, tag);
+	cap_t cap1 = Util_cap_mk_socket(chan, mode, perm, 0);
+	cap_t cap2 = Util_cap_mk_socket(chan, mode, perm, tag);
 	Syscall_cap_derive(&ks, server, src, dst1, cap1.raw);
 	Syscall_cap_derive(&ks, server, dst1, dst2, cap2.raw);
 	Syscall_mon_cap_move(&ks, server, 4, server, dst2, client, dst2);

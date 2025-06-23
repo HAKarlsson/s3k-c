@@ -16,6 +16,7 @@ defn INVALID_STATE : err_t = 8L
 defn INVALID_PMP : err_t = 9L
 defn INVALID_SLOT : err_t = 10L
 defn INVALID_SOCKET : err_t = 11L
+defn INVALID_SYSCALL : err_t = 12L
 defn INVALID_REGISTER : err_t = 13L
 defn INVALID_CAPABILITY : err_t = 14L
 defn NO_RECEIVER : err_t = 15L

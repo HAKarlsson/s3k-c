@@ -37,8 +37,8 @@ proc_t *exception_handler(proc_t *proc, uint64_t mcause, uint64_t mtval)
 {
 	kprintf("Exception: mcause: %X, mtval: %X, mepc: %X\n", mcause, mtval,
 		proc->pc);
-	while (1) {
-	}
+	// while (1) {
+	// }
 	if (mcause == ILLEGAL_INSTRUCTION
 	    && (mtval == MRET || mtval == SRET || mtval == URET))
 		return _exception_trap_return(proc);

@@ -16,12 +16,6 @@
 typedef struct Types_proc_t proc_t;
 typedef word_t proc_state_t;
 
-typedef enum {
-	PSF_BUSY = 1,
-	PSF_BLOCKED = 2,
-	PSF_SUSPENDED = 4,
-} proc_state_flags_t;
-
 /**
  * Initializes all processes in the system.
  *
@@ -37,17 +31,6 @@ void proc_init(word_t payload);
  */
 proc_t *proc_get(pid_t pid);
 
-proc_state_t proc_get_state(proc_t *proc);
-
 bool proc_acquire(proc_t *proc);
 void proc_release(proc_t *proc);
-void proc_suspend(proc_t *proc);
-void proc_resume(proc_t *proc);
-void proc_ipc_wait(proc_t *proc, chan_t chan);
-bool proc_ipc_acquire(proc_t *proc, chan_t chan);
-bool proc_is_suspended(proc_t *proc);
-
-bool proc_pmp_avail(proc_t *proc, pmp_slot_t slot);
-void proc_pmp_load(proc_t *proc, pmp_slot_t slot, rwx_t cfg, napot_t addr);
-void proc_pmp_unload(proc_t *proc, pmp_slot_t slot);
 proc_t *proc_pmp_sync(proc_t *proc);

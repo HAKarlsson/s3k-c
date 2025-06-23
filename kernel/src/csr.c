@@ -1,8 +1,8 @@
 #include "csr.h"
 
-uint64_t csrr_mhartid(void)
+u64 csrr_mhartid(void)
 {
-	uint64_t hartid;
+	u64 hartid;
 	__asm__ volatile("csrr %0, mhartid" : "=r"(hartid));
 	return hartid;
 }
@@ -12,16 +12,16 @@ u64 Machine_csrr_mhartid(struct Machine_state *mc)
 	return csrr_mhartid();
 }
 
-uint64_t csrr_mie(void)
+u64 csrr_mie(void)
 {
-	uint64_t mie;
+	u64 mie;
 	__asm__ volatile("csrr %0, mie" : "=r"(mie));
 	return mie;
 }
 
-uint64_t csrr_mip(void)
+u64 csrr_mip(void)
 {
-	uint64_t mip;
+	u64 mip;
 	__asm__ volatile("csrr %0, mip" : "=r"(mip));
 	return mip;
 }

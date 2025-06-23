@@ -67,19 +67,17 @@ static proc_t *sched_fetch(uint64_t slot)
 
 	// If length = 0, then slice is deleted.
 	if (si.length == 0)
-		goto fail;
+		return NULL;
 
 	proc = proc_get(si.pid);
 
 	// Try to acquire the process.
 	if (!proc_acquire(proc)) {
-		proc = NULL;
-		goto fail;
+		return NULL;
 	}
 
 	// Get the process.
 	proc->timeout = (slot + si.length) * S3K_SLOT_LEN;
-fail:
 	return proc;
 }
 
@@ -96,8 +94,6 @@ proc_t *sched(void)
 	do {
 		slot = rtc_time_get() / S3K_SLOT_LEN;
 
-		while (rtc_time_get() < slot * S3K_SLOT_LEN)
-			;
 		// Try schedule process
 		proc = sched_fetch(slot);
 	} while (!proc);

@@ -3,7 +3,6 @@
 #include "kprint.h"
 #include "libkernel.h"
 #include "macro.h"
-#include "pmp.h"
 #include "proc.h"
 
 struct Types_kstate ks;
@@ -82,16 +81,17 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	// Populate the capability table with initial capabilities
 	unsigned int prev = 0;
 	for (unsigned int i = 0; i < size; i++) {
-		if (init_caps[i].type == Cap_CAPTY_NONE)
+		cap_t cap = init_caps[i];
+		if (Cap_get_type(cap) == Cap_CAPTY_NONE)
 			continue;
-		Ctable_insert(&ks, i, init_caps[i].raw, prev);
+		Ctable_insert(&ks, i, cap, prev);
 		prev = i;
-		if (init_caps[i].type == Cap_CAPTY_TIME) {
+		if (Cap_get_type(cap) == Cap_CAPTY_TIME) {
 			// Update the time slots when inserting a time capability
-			Sched_update(&ks, 0, init_caps[i].time.end,
-				     init_caps[i].time.mrk,
-				     init_caps[i].time.end);
+			Sched_update(&ks, 0, Cap_time_get_end(cap),
+				     Cap_time_get_mrk(cap),
+				     Cap_time_get_end(cap));
 		}
-		kprintf("# init_caps[%d]: %C\n", i, &init_caps[i]);
+		kprintf("# init_caps[%d]: %C\n", i, cap);
 	}
 }

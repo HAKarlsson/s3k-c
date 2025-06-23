@@ -2,7 +2,6 @@
 #include "csr.h"
 #include "libkernel.h"
 #include "machine.h"
-#include "pmp.h"
 #include "proc.h"
 #include "rtc.h"
 #include "sched.h"

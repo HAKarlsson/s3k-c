@@ -5,6 +5,6 @@ int main(void)
 {
 	while (1) {
 		serio_putstr("Hello from app1!\n");
-		s3k_br_sleep(0);
+		s3k_sleep(0);
 	}
 }

@@ -8,15 +8,6 @@ defn cap_pid(cidx: u64) : pid_t =
 defn cap_idx_from_pid(pid: pid_t, idx: u64) : u64 =
   pid * Config::S3K_CAP_CNT + idx
 
-defn pmp_napot_decode_base(addr: u64) : u64 =
-  ((addr + 1UL) & addr) << 2UL
-
-defn pmp_napot_decode_size(addr: u64) : u64 =
-  (((addr + 1UL) ^ addr) + 1UL) << 2UL
-
-defn tag_block_to_addr(tag: u64, block: u64) : u64 =
-  (tag << Config::MAX_BLOCK_SIZE) + (block << Config::MIN_BLOCK_SIZE)
-
 (* Memory capability *)
 
 defn delete_memory(ks: kstate, cidx: u64) : kstate =
@@ -42,8 +33,8 @@ defn revoke_memory(ks: kstate, parent: u64) : kstate =
     else
       ks.errcode <- Error::CONTINUE
   else
-    let base = pmp_napot_decode_base(Cap::pmp_get_addr(ccap)) in
-    let pcap_tag_addr = tag_block_to_addr(Cap::memory_get_tag(pcap), Cap::memory_get_bgn(pcap)) in
+    let base = Util::pmp_napot_decode_base(Cap::pmp_get_addr(ccap)) in
+    let pcap_tag_addr = Util::tag_block_to_addr(Cap::memory_get_tag(pcap), Cap::memory_get_bgn(pcap)) in
     if (Cap::get_type(ccap) == Cap::CAPTY_PMP)
         && (pcap_tag_addr <= base)
     then
@@ -75,11 +66,11 @@ defn derive_memory(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
     let ks = Ctable::insert(ks, dst, ncap, src) in
     ks.errcode <- Error::SUCCESS
   else
-    let pmp_begin = pmp_napot_decode_base(Cap::pmp_get_addr(ncap)) in
-    let pmp_size = pmp_napot_decode_size(Cap::pmp_get_addr(ncap)) in
+    let pmp_begin = Util::pmp_napot_decode_base(Cap::pmp_get_addr(ncap)) in
+    let pmp_size = Util::pmp_napot_decode_size(Cap::pmp_get_addr(ncap)) in
     let pmp_end = pmp_begin + pmp_size in
-    let mem_mrk = tag_block_to_addr(Cap::memory_get_tag(cap), Cap::memory_get_mrk(cap)) in
-    let mem_end = tag_block_to_addr(Cap::memory_get_tag(cap), Cap::memory_get_end(cap)) in
+    let mem_mrk = Util::tag_block_to_addr(Cap::memory_get_tag(cap), Cap::memory_get_mrk(cap)) in
+    let mem_end = Util::tag_block_to_addr(Cap::memory_get_tag(cap), Cap::memory_get_end(cap)) in
     if (Cap::get_type(ncap) == Cap::CAPTY_PMP)
         && (mem_mrk <= pmp_begin)
         && (pmp_end <= mem_end)

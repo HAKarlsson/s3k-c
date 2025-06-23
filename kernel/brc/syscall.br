@@ -47,6 +47,9 @@ defn reg_write(ks: kstate, pid: pid_t, reg: u64, val: word_t) : kstate =
     let ks = Ptable::proc_reg_write(ks, pid, reg, val) in
     set_proc_err(ks, pid, Error::SUCCESS)
 
+defn sync(ks: kstate, pid: pid_t) : kstate =
+  Ptable::proc_timeout_set(ks, pid, 0UL)
+
 defn sleep(ks: kstate, pid: pid_t, time: u64) : kstate =
   if time != 0UL then Ptable::proc_timeout_set(ks, pid, time)
   else ks
