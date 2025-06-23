@@ -93,7 +93,7 @@ defn do_send(ks: kstate, sock_idx: u64, next_pid: pid_t) : kstate =
       let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
       Ptable::release(ks, recv_pid)
   else
-    ks.errcode <- Error::NO_RECEIVER
+    ks
 
 defn do_recv(ks: kstate, sock_idx: u64, buf_idx: u64, recv_pid: pid_t) : kstate =
   let sock = ks.ctable[sock_idx] in

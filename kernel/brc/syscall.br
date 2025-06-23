@@ -282,5 +282,6 @@ defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap
     let ks = Ipc::msg_data_set(ks, 2UL, msg_data[2UL]) in
     let ks = Ipc::msg_data_set(ks, 3UL, msg_data[3UL]) in
     let next_pid = pid in
+    let ks = Vreg::write(ks, 0UL, next_pid) in
     let ks = Ipc::cap_sock_sendrecv(ks, sock_idx, next_pid) in
     set_proc_err(ks, pid, ks.errcode)

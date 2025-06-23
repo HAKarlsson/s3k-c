@@ -90,11 +90,11 @@ int main(void)
 		s3k_reply_t reply = s3k_br_sock_sendrecv(12, &msg);
 		if (reply.err == S3K_SUCCESS) {
 			// Process the reply from app1
-			serio_printf("App0: Received reply: tag=%d, data[0]=%d\n",
+			serio_printf("Server: Received reply: tag=%d, data[0]=%d\n",
 				     reply.tag, reply.data[0]);
 			msg.data[0] = reply.data[0] + 1; // Increment the data
 		} else {
-			serio_printf("App0: Error: %d\n", reply.err);
+			serio_printf("Server: Error: %d\n", reply.err);
 		}
 	}
 }
