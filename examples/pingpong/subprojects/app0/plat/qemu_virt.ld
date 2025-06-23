@@ -2,6 +2,12 @@
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
 
+MEMORY {
+	RAM (rwx) : ORIGIN = 0x80010000, LENGTH = 0x10000
+}
+
+__stack_top = ORIGIN(RAM) + LENGTH(RAM);
+
 __global_pointer$ = MIN(_sdata + 0x800, MAX(_data + 0x800, _end - 0x800));
 
 SECTIONS {
@@ -26,10 +32,4 @@ SECTIONS {
 		*(.bss .bss.*)
 		_end = .;
 	} > RAM
-
-	.stack : ALIGN(8) {
-		. += __stack_size;
-		__stack_pointer = .;
-		_end = .;
-	}
 }

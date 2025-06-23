@@ -1,0 +1,1 @@
+option('plat', type : 'combo', choices : ['qemu_virt'], value : 'qemu_virt', description : 'Platform name')

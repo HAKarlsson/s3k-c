@@ -24,6 +24,7 @@ void kernel_init(void)
 	    cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
 	    cap_mk_time(0, S3K_SLOT_CNT),
 	    cap_mk_monitor(0, S3K_PROC_CNT),
+	    cap_mk_channel(0, S3K_CHAN_CNT),
 	};
 
 	kstate_init(init_caps, ARRAY_SIZE(init_caps));
