@@ -84,9 +84,11 @@ defn reg_write(ks: kstate, pid: pid_t, reg: u64, val: word_t) : kstate =
     set_proc_err(ks, pid, Error::SUCCESS)
 
 defn sync(ks: kstate, pid: pid_t) : kstate =
+  let ks = ks.next_pid <- Proc::NULL in
   Ptable::proc_timeout_set(ks, pid, 0UL)
 
 defn sleep(ks: kstate, pid: pid_t, time: u64) : kstate =
+  let ks = ks.next_pid <- Proc::NULL in
   if time != 0UL then Ptable::proc_timeout_set(ks, pid, time)
   else ks
 
@@ -273,60 +275,40 @@ defn mon_pmp_unload(ks: kstate, pid: pid_t, mon_idx: u64, mon_pid: pid_t, pmp_id
     set_proc_err(ks, pid, ks.errcode)
 
 defn sock_send(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bool,
-               data_0: u64, data_1: u64, data_2: u64, data_3: u64) : kstate =
+               data0: u64, data1: u64, data2: u64, data3: u64) : kstate =
   if !valid_index(sock_idx) then
-    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_index(cap_idx) then
-    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
-    let ks = Ipc::msg_buf_idx_set(ks, buf_idx) in
-    let ks = Ipc::msg_send_cap_set(ks, send_cap) in
-    let ks = Ipc::msg_data_set(ks, 0UL, data_0) in
-    let ks = Ipc::msg_data_set(ks, 1UL, data_1) in
-    let ks = Ipc::msg_data_set(ks, 2UL, data_2) in
-    let ks = Ipc::msg_data_set(ks, 3UL, data_3) in
-    let next_pid = pid in
-    let ks = Ipc::cap_sock_send(ks, sock_idx, next_pid) in
+    let ks = Message::set(ks, send_cap, buf_idx, data0, data1, data2, data3) in
+    let ks = Ipc::cap_sock_send(ks, sock_idx) in
     set_proc_err(ks, pid, ks.errcode)
 
 defn sock_recv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64) : kstate =
   if !valid_index(sock_idx) then
-    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_index(cap_idx) then
-    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
-    let next_pid = pid in
-    let ks = Ipc::cap_sock_recv(ks, sock_idx, buf_idx, next_pid) in
+    let ks = Ipc::cap_sock_recv(ks, sock_idx, buf_idx) in
     set_proc_err(ks, pid, ks.errcode)
 
 defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap: bool, 
-                   data_0: u64, data_1: u64, data_2: u64, data_3: u64) : kstate =
+                   data0: u64, data1: u64, data2: u64, data3: u64) : kstate =
   if !valid_index(sock_idx) then
-    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else if !valid_index(cap_idx) then
-    let ks = Vreg::write(ks, 0UL, pid) in
     set_proc_err(ks, pid, Error::INVALID_INDEX)
   else
     let sock_idx = Cap_ops::cap_idx_from_pid(pid, sock_idx) in
     let buf_idx = Cap_ops::cap_idx_from_pid(pid, cap_idx) in
-    let ks = Ipc::msg_send_cap_set(ks, send_cap) in
-    let ks = Ipc::msg_buf_idx_set(ks, buf_idx) in
-    let ks = Ipc::msg_data_set(ks, 0UL, data_0) in
-    let ks = Ipc::msg_data_set(ks, 1UL, data_1) in
-    let ks = Ipc::msg_data_set(ks, 2UL, data_2) in
-    let ks = Ipc::msg_data_set(ks, 3UL, data_3) in
-    let next_pid = pid in
-    let ks = Vreg::write(ks, 0UL, next_pid) in
-    let ks = Ipc::cap_sock_sendrecv(ks, sock_idx, next_pid) in
+    let ks = Message::set(ks, send_cap, buf_idx, data0, data1, data2, data3) in
+    let ks = Ipc::cap_sock_sendrecv(ks, sock_idx) in
     set_proc_err(ks, pid, ks.errcode)
 
 (* Handler entry point *)
@@ -451,20 +433,28 @@ defn handler(ks: kstate, pid: pid_t) : kstate =
     let idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A2) in
     let ks = mon_pmp_unload(ks, pid, mon_idx, mon_pid, idx) in
     Vreg::write(ks, Vreg::V0, pid)
-  else
+  else if call == CALL_SOCK_SEND then
     let sock_idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A0) in
     let cap_idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A1) in
     let send_cap = Ptable::proc_reg_read(ks, pid, Proc::REG_A2) in
-    let data_0 = Ptable::proc_reg_read(ks, pid, Proc::REG_A3) in
-    let data_1 = Ptable::proc_reg_read(ks, pid, Proc::REG_A4) in
-    let data_2 = Ptable::proc_reg_read(ks, pid, Proc::REG_A5) in
-    let data_3 = Ptable::proc_reg_read(ks, pid, Proc::REG_A6) in
-    if call == CALL_SOCK_SEND then
-      sock_send(ks, pid, sock_idx, cap_idx, send_cap as bool, data_0, data_1, data_2, data_3)
-    else if call == CALL_SOCK_RECV then
-      sock_recv(ks, pid, sock_idx, cap_idx)
-    else if call == CALL_SOCK_SENDRECV then
-      sock_sendrecv(ks, pid, sock_idx, cap_idx, send_cap as bool, data_0, data_1, data_2, data_3)
-    else
-      let ks = set_proc_err(ks, pid, Error::INVALID_SYSCALL) in
-      Vreg::write(ks, Vreg::V0, pid)
+    let data0 = Ptable::proc_reg_read(ks, pid, Proc::REG_A3) in
+    let data1 = Ptable::proc_reg_read(ks, pid, Proc::REG_A4) in
+    let data2 = Ptable::proc_reg_read(ks, pid, Proc::REG_A5) in
+    let data3 = Ptable::proc_reg_read(ks, pid, Proc::REG_A6) in
+    sock_send(ks, pid, sock_idx, cap_idx, send_cap as bool, data0, data1, data2, data3)
+  else if call == CALL_SOCK_RECV then
+    let sock_idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A0) in
+    let cap_idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A1) in
+    sock_recv(ks, pid, sock_idx, cap_idx)
+  else if call == CALL_SOCK_SENDRECV then
+    let sock_idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A0) in
+    let cap_idx = Ptable::proc_reg_read(ks, pid, Proc::REG_A1) in
+    let send_cap = Ptable::proc_reg_read(ks, pid, Proc::REG_A2) in
+    let data0 = Ptable::proc_reg_read(ks, pid, Proc::REG_A3) in
+    let data1 = Ptable::proc_reg_read(ks, pid, Proc::REG_A4) in
+    let data2 = Ptable::proc_reg_read(ks, pid, Proc::REG_A5) in
+    let data3 = Ptable::proc_reg_read(ks, pid, Proc::REG_A6) in
+    sock_sendrecv(ks, pid, sock_idx, cap_idx, send_cap as bool, data0, data1, data2, data3)
+  else
+    let ks = set_proc_err(ks, pid, Error::INVALID_SYSCALL) in
+    Vreg::write(ks, Vreg::V0, pid)

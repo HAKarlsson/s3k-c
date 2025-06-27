@@ -59,7 +59,7 @@ defn cap_yield(ks: kstate, midx: u64, pid: pid_t) : kstate =
   if err == Error::SUCCESS then
     let ks = Ptable::acquire(ks, pid) in
     if (Vreg::read(ks, 0UL) as bool) then
-      let ks = Vreg::write(ks, Vreg::V0, pid) in
+      let ks = ks.next_pid <- pid in
       ks.errcode <- Error::SUCCESS
     else
       ks.errcode <- Error::INVALID_STATE

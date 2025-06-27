@@ -148,18 +148,15 @@ defn release(ks: kstate, pid: pid_t) : kstate =
 defn ipc_acquire(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
   let expected = Proc::PSF_BLOCKED | (chan_idx << 48UL) in
   let desired = Proc::PSF_BUSY in
-  let proc_state = ks.ptable[pid].state in
-  let proc_timeout = ks.ptable[pid].timeout in
-  if proc_state != expected then
-    Vreg::write(ks, Vreg::V0, false as u64)
-  else if Machine::time_read(ks.mc) >= proc_timeout then
-    Vreg::write(ks, Vreg::V0, false as u64)
-  else
+  if ks.ptable[pid].state == expected then
     let ks = proc_state_set(ks, pid, desired) in
-    Vreg::write(ks, Vreg::V0, true as u64)
+    let ks = Vreg::write(ks, Vreg::V0, pid) in
+    ks.errcode <- Error::SUCCESS
+  else
+    ks.errcode <- Error::NO_RECEIVER
 
 defn ipc_wait(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
-  proc_state_set(ks, pid, Proc::PSF_BLOCKED | (chan_idx << 48UL) | Proc::PSF_BUSY)
+  proc_state_set(ks, pid, (chan_idx << 48UL) | Proc::PSF_BLOCKED | Proc::PSF_BUSY)
 
 defn is_suspended(ks: kstate, pid: pid_t) : bool =
   Proc::is_suspended(ks.ptable[pid])

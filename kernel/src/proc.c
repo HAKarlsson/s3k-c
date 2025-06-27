@@ -31,6 +31,10 @@ proc_t *proc_get(pid_t pid)
 
 proc_t *proc_pmp_sync(proc_t *proc)
 {
+	u64 pmpcfg = 0;
+	for (u64 i = 0; i < S3K_PMP_CNT; i++) {
+		pmpcfg |= (u64)proc->pmpcfg[i] << (i * 8);
+	}
 	csrw_pmpaddr0(proc->pmpaddr[0]);
 	csrw_pmpaddr1(proc->pmpaddr[1]);
 	csrw_pmpaddr2(proc->pmpaddr[2]);
@@ -39,10 +43,6 @@ proc_t *proc_pmp_sync(proc_t *proc)
 	csrw_pmpaddr5(proc->pmpaddr[5]);
 	csrw_pmpaddr6(proc->pmpaddr[6]);
 	csrw_pmpaddr7(proc->pmpaddr[7]);
-	u64 pmpcfg = 0;
-	for (u64 i = 0; i < S3K_PMP_CNT; i++) {
-		pmpcfg |= (u64)proc->pmpcfg[i] << (i * 8);
-	}
 	csrw_pmpcfg0(pmpcfg);
 	return proc;
 }

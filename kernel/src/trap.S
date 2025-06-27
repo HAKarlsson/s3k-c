@@ -3,7 +3,6 @@
 
 .globl trap_entry
 .globl trap_resume
-.globl trap_return
 
 .type trap_entry, @function
 .type trap_exit, @function
@@ -67,9 +66,6 @@ trap_entry:
 	call	trap_handler
 
 trap_resume:
-	call	proc_pmp_sync
-
-trap_return:
 	ld	t0,PROC_PC(a0)
 	ld	t1,PROC_A0(a0)
 	csrw	mepc,t0

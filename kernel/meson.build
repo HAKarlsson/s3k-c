@@ -37,6 +37,7 @@ sources = files(
 c_args = [
     '-ffreestanding',
     '-Wno-unused-parameter',
+    '-Wno-unused-but-set-variable',
     '-Wno-parentheses',
     '-nostdlib',
     '-fno-builtin',

@@ -40,6 +40,15 @@ type channel = {
   buf_idx: u64;
 }
 
+type message = {
+  send_cap : bool;
+  buf_idx : u64;
+  data0 : u64;
+  data1 : u64;
+  data2 : u64;
+  data3 : u64;
+}
+
 type kstate = {
   (* Capability table *)
   cnext: array u64;
@@ -53,7 +62,11 @@ type kstate = {
   channels: array channel;
   (* Machine state *)
   mc: Machine::state;
+  (* IPC message *)
+  msg: message;
   (* Return data *)
   vregs: array u64; 
   errcode: Error::err_t;
+  (* next process to run *)
+  next_pid: pid_t;
 }

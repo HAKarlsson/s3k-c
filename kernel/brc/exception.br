@@ -33,12 +33,10 @@ defn trap_return(ks: kstate, pid: pid_t) : kstate =
   ks.ptable <- ptable
 
 defn handler(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
-  let ks =
-    if (mcause == ILLEGAL_INSTRUCTION)
-        && ((mtval == MRET) || (mtval == SRET) || (mtval == URET))
-    then
-      trap_return(ks, pid)
-    else
-      delegate(ks, pid, mcause, mtval)
-  in
-  Vreg::write(ks, Vreg::V0, pid)
+  let ks = ks.next_pid <- pid in
+  if (mcause == ILLEGAL_INSTRUCTION)
+      && ((mtval == MRET) || (mtval == SRET) || (mtval == URET))
+  then
+    trap_return(ks, pid)
+  else
+    delegate(ks, pid, mcause, mtval)

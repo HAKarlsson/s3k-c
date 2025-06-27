@@ -1241,16 +1241,20 @@ void test_Syscall_sock_send_success1(void)
 	Syscall_cap_read(&ks, client, dst2);
 	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[client]->a0);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+
+	ks.next_pid = server;
 	Syscall_mon_resume(&ks, server, 4, client);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
 
+	ks.next_pid = server;
 	Syscall_sock_recv(&ks, server, dst1, 0);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BLOCKED | chan << 48,
 				 ks.ptable[server]->state);
 
+	ks.next_pid = client;
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	Syscall_sock_send(&ks, client, dst2, 0, 0, msg[0], msg[1], msg[2], msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
@@ -1285,16 +1289,19 @@ void test_Syscall_sock_send_success2(void)
 	Syscall_cap_read(&ks, client, dst2);
 	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[client]->a0);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	ks.next_pid = server;
 	Syscall_mon_resume(&ks, server, 4, client);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
 
+	ks.next_pid = server;
 	Syscall_sock_recv(&ks, server, dst1, 0);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BLOCKED | chan << 48,
 				 ks.ptable[server]->state);
 
+	ks.next_pid = client;
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	Syscall_sock_send(&ks, client, dst2, 0, 0, msg[0], msg[1], msg[2], msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
@@ -1330,10 +1337,12 @@ void test_Syscall_sock_send_success3(void)
 	Syscall_cap_read(&ks, client, dst2);
 	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[client]->a0);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
+	ks.next_pid = server;
 	Syscall_mon_resume(&ks, server, 4, client);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
 
+	ks.next_pid = server;
 	Syscall_sock_recv(&ks, server, dst1, 10);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
@@ -1341,14 +1350,18 @@ void test_Syscall_sock_send_success3(void)
 				 ks.ptable[server]->state);
 
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
+	ks.next_pid = client;
+	ks.ptable[client]->state = Proc_PSF_BUSY;
 	Syscall_sock_send(&ks, client, dst2, dst2, true, msg[0], msg[1], msg[2], msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
 
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(tag, ks.ptable[server]->a0);
-	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[server]->a1);
 	TEST_ASSERT_EQUAL_UINT64(msg[0], ks.ptable[server]->a2);
 	TEST_ASSERT_EQUAL_UINT64(msg[1], ks.ptable[server]->a3);
 	TEST_ASSERT_EQUAL_UINT64(msg[2], ks.ptable[server]->a4);
 	TEST_ASSERT_EQUAL_UINT64(msg[3], ks.ptable[server]->a5);
+	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[server]->a1);
+	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BUSY, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BUSY, ks.ptable[client]->state);
 }

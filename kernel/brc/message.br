@@ -1,0 +1,13 @@
+module Message
+
+import Types
+
+defn set(ks: kstate, send_cap: bool, buf_idx: u64, data0: u64, data1: u64, data2: u64, data3: u64) : kstate =
+  let msg = ks.msg in
+  let msg = msg.send_cap <- send_cap in
+  let msg = msg.buf_idx <- buf_idx in
+  let msg = msg.data0 <- data0 in
+  let msg = msg.data1 <- data1 in
+  let msg = msg.data2 <- data2 in
+  let msg = msg.data3 <- data3 in
+  ks.msg <- msg

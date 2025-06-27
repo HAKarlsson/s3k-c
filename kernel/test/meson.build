@@ -48,6 +48,7 @@ s3k_test = executable(
         'config.h',
         '-DNDEBUG',
         '-Wno-unused-parameter',
+        '-Wno-unused-but-set-variable',
         '-Wno-parentheses',
     ],
     native: true,

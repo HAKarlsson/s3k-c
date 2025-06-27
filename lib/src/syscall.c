@@ -256,12 +256,6 @@ void s3k_sync(void)
 	DO_ECALL(S3K_SYS_SYNC, args, sizeof(args.sync));
 }
 
-void s3k_sync_mem(void)
-{
-	sys_args_t args = {.sync = {false}};
-	DO_ECALL(S3K_SYS_SYNC, args, sizeof(args.sync));
-}
-
 void s3k_sleep(uint64_t time)
 {
 	sys_args_t args = {.sleep = {time}};

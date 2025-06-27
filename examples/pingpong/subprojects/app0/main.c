@@ -15,8 +15,7 @@ void setup_uart(uint64_t uart_idx)
 	// Load the derive PMP capability to PMP configuration
 	s3k_pmp_load(uart_idx, 1);
 	// Synchronize PMP unit (hardware) with PMP configuration
-	// false => not full synchronization.
-	s3k_sync_mem();
+	s3k_sync();
 }
 
 void setup_app1(uint64_t tmp)
@@ -46,7 +45,7 @@ void setup_ipc(uint64_t server, uint64_t tmp)
 {
 	int err;
 	int channel = 0;
-	int mode = S3K_IPC_NOYIELD;
+	int mode = S3K_IPC_YIELD;
 	int perm = 0;
 
 	// Create two IPC capabilities for server and client
@@ -85,9 +84,11 @@ int main(void)
 	// Start app1
 	s3k_mon_resume(CAP_MONITOR, APP1_PID);
 
+	serio_printf("Server: App0 started successfully.\n");
+
 	s3k_msg_t msg;
 	while (1) {
-		s3k_reply_t reply = s3k_sock_sendrecv(12, &msg);
+		s3k_reply_t reply = s3k_try_sock_sendrecv(12, &msg);
 		if (reply.err == S3K_SUCCESS) {
 			// Process the reply from app1
 			serio_printf("Server: Received reply: tag=%d, data[0]=%d\n",

@@ -29,6 +29,8 @@ static u64 _tslots[S3K_SLOT_CNT];
 static struct Types_channel _channels[S3K_CHAN_CNT];
 static struct Types_channel *_pchannels[S3K_CHAN_CNT];
 
+static struct Types_message _msg;
+
 void kstate_init(const cap_t init_caps[], size_t size)
 {
 	// Setup the kernel state
@@ -39,6 +41,8 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	ks.ptable = _ptable;
 	ks.tslots = _tslots;
 	ks.channels = _pchannels;
+	ks.msg = &_msg;
+	ks.next_pid = Proc_NULL; // Initialize next PID to NULL
 
 	// Zero the capability table
 	for (unsigned int i = 0; i < ARRAY_SIZE(_ctable); i++) {

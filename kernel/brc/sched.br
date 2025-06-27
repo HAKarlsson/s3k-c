@@ -6,26 +6,23 @@ decl delete : (@write kstate, u64, u64) -> kstate
 
 decl update : (@write kstate, u64, u64, u64, u64) -> kstate
 
-defn slot_info_get(ks: kstate, slot: u64) : kstate =
-  let entry = ks.tslots[slot % Config::S3K_SLOT_CNT] in
-  let pid = (entry >> 8UL) & 0xFFUL in
-  let length = entry & 0xFFUL in
-  let ks = Vreg::write(ks, Vreg::V0, pid) in
-  Vreg::write(ks, Vreg::V1, length)
+defn get_pid(ks: kstate, slot: u64) : u64 =
+  (ks.tslots[slot] >> 8UL) & 0xFFUL
 
-defn fetch(ks: kstate, slot: u64) : kstate =
-  let ks = slot_info_get(ks, slot) in
-  let length = Vreg::read(ks, Vreg::V1) in
-  if length == 0UL then
-    Vreg::write(ks, Vreg::V0, Proc::NULL)
-  else
-    let pid = Vreg::read(ks, Vreg::V0) in
+defn get_length(ks: kstate, slot: u64) : u64 =
+  ks.tslots[slot] & 0xFFUL
+
+defn fetch(ks: kstate) : kstate =
+  let slot = Machine::time_read(ks.mc) / Config::S3K_SLOT_LEN() in
+  let lslot = slot % Config::S3K_SLOT_CNT in
+  let pid = get_pid(ks, lslot) in
+  let length = get_length(ks, lslot) in
+  let timeout = (slot + length) * Config::S3K_SLOT_LEN() in
+  if length > 0UL then
     let ks = Ptable::acquire(ks, pid) in
     if Vreg::read(ks, Vreg::V0) as bool then
-      Vreg::write(ks, Vreg::V0, Proc::NULL)
+      let ks = ks.next_pid <- pid in
+      Ptable::proc_timeout_set(ks, pid, timeout)
     else
-      let timeout = (slot + length) * Config::S3K_SLOT_LEN() in
-      let ks = Ptable::proc_timeout_set(ks, pid, timeout) in
-      Vreg::write(ks, Vreg::V0, pid)
-
-decl sched : (@write kstate) -> kstate
+      ks
+  else ks
