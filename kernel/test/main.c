@@ -25,9 +25,9 @@ void setUp(void)
 			    MEM_RWX),
 	    Util_cap_mk_memory(0x80020000, 0x80100000, MEM_RWX),
 	    Util_cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
-	    Util_cap_mk_time(0, Config_S3K_SLOT_CNT),
-	    Util_cap_mk_monitor(0, Config_S3K_PROC_CNT),
-	    Util_cap_mk_channel(0, Config_S3K_CHAN_CNT),
+	    Util_cap_mk_time(0, Config_s3k_SLOT_CNT),
+	    Util_cap_mk_monitor(0, Config_s3k_PROC_CNT),
+	    Util_cap_mk_channel(0, Config_s3k_CHAN_CNT),
 	};
 	kstate_init(init_caps, ARRAY_SIZE(init_caps));
 	ks.ptable[0]->pc = 0x80010000;
@@ -78,8 +78,8 @@ void test_cap_memory_serialization(void)
 	cap.type = Cap_CAPTY_MEMORY;
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.rwx, Cap_memory_get_rwx(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.mem.bgn, Cap_memory_get_bgn(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.mem.end, Cap_memory_get_end(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.mem.bgn, Cap_memory_get_low(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.mem.end, Cap_memory_get_upp(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.tag, Cap_memory_get_tag(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.lck, Cap_memory_get_lck(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mem.mrk, Cap_memory_get_mrk(cap.raw));
@@ -106,8 +106,8 @@ void test_cap_time_serialization(void)
 	cap.type = Cap_CAPTY_TIME;
 	cap.time._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.time.bgn, Cap_time_get_bgn(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.time.end, Cap_time_get_end(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.time.bgn, Cap_time_get_low(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.time.end, Cap_time_get_upp(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.time.mrk, Cap_time_get_mrk(cap.raw));
 }
 
@@ -120,8 +120,8 @@ void test_cap_monitor_serialization(void)
 	cap.type = Cap_CAPTY_MONITOR;
 	cap.mon._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.mon.bgn, Cap_monitor_get_bgn(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.mon.end, Cap_monitor_get_end(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.mon.bgn, Cap_monitor_get_low(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.mon.end, Cap_monitor_get_upp(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.mon.mrk, Cap_monitor_get_mrk(cap.raw));
 }
 
@@ -134,8 +134,8 @@ void test_cap_channel_serialization(void)
 	cap.type = Cap_CAPTY_CHANNEL;
 	cap.chan._padding = 0; // Ensure padding is zero
 	TEST_ASSERT_EQUAL_UINT64(cap.type, Cap_get_type(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.chan.bgn, Cap_channel_get_bgn(cap.raw));
-	TEST_ASSERT_EQUAL_UINT64(cap.chan.end, Cap_channel_get_end(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.chan.bgn, Cap_channel_get_low(cap.raw));
+	TEST_ASSERT_EQUAL_UINT64(cap.chan.end, Cap_channel_get_upp(cap.raw));
 	TEST_ASSERT_EQUAL_UINT64(cap.chan.mrk, Cap_channel_get_mrk(cap.raw));
 }
 
@@ -149,9 +149,9 @@ void test_Setup(void)
 	    Util_cap_mk_pmp(ram_pmp, MEM_RWX),
 	    Util_cap_mk_memory(0x80020000, 0x80100000, MEM_RWX),
 	    Util_cap_mk_memory(0x10000000, 0x10010000, MEM_RW),
-	    Util_cap_mk_time(0, Config_S3K_SLOT_CNT),
-	    Util_cap_mk_monitor(0, Config_S3K_PROC_CNT),
-	    Util_cap_mk_channel(0, Config_S3K_CHAN_CNT),
+	    Util_cap_mk_time(0, Config_s3k_SLOT_CNT),
+	    Util_cap_mk_monitor(0, Config_s3k_PROC_CNT),
+	    Util_cap_mk_channel(0, Config_s3k_CHAN_CNT),
 	};
 	init_caps[0] = Cap_pmp_set_slot(init_caps[0], 0);    // Set slot to 0
 	init_caps[0] = Cap_pmp_set_used(init_caps[0], true); // Set slot to 0
@@ -174,7 +174,7 @@ void test_Setup(void)
 	// Check other processes
 	for (int i = 1; i < S3K_PROC_CNT; i++) {
 		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->state,
-					 Proc_PSF_SUSPENDED);
+					 Proc_psf_SUSPENDED);
 		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->pid, i);
 		TEST_ASSERT_EQUAL_UINT64(ks.ptable[i]->pc, 0);
 		for (int j = 0; j < S3K_PMP_CNT; j++) {
@@ -411,7 +411,7 @@ void test_Syscall_cap_derive_memory_invalid_dest1(void)
 {
 	int pid = 0;		      // Process ID
 	int src = 1;		      // Source capability index
-	int dst = Config_S3K_CAP_CNT; // Destination capability index
+	int dst = Config_s3k_CAP_CNT; // Destination capability index
 	s3k_cap_t cap = s3k_mk_memory(0x80020000, 0x80030000, MEM_RWX);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ctable[dst]);
 	Syscall_cap_derive(&ks, pid, src, dst, cap.raw);
@@ -891,14 +891,14 @@ void test_Syscall_cap_mon_resume_suspend_valid1(void)
 	int pid = 0; // Process ID
 	int src = 4; // Source capability index
 	int other_pid = 1;
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_SUSPENDED,
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_SUSPENDED,
 				 ks.ptable[other_pid]->state);
 	Syscall_mon_resume(&ks, pid, src, other_pid);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[other_pid]->state);
 	Syscall_mon_suspend(&ks, pid, src, other_pid);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[pid]->t0);
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_SUSPENDED,
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_SUSPENDED,
 				 ks.ptable[other_pid]->state);
 }
 
@@ -972,8 +972,8 @@ void test_Syscall_cap_derive_channel_valid3(void)
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -993,8 +993,8 @@ void test_Syscall_cap_derive_channel_valid4(void)
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_NOYIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_NOYIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1046,8 +1046,8 @@ void test_Syscall_cap_derive_channel_invalid3(void)
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 1;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1067,8 +1067,8 @@ void test_Syscall_cap_derive_channel_invalid4(void)
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_NOYIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_NOYIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 1;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1089,7 +1089,7 @@ void test_Syscall_cap_derive_channel_invalid5(void)
 	int dst1 = 8; // Destination capability index
 	int chan = 4;
 	int mode = 3;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1109,8 +1109,8 @@ void test_Syscall_cap_derive_channel_invalid6(void)
 	int src = 5;  // Source capability index
 	int dst1 = 8; // Destination capability index
 	int chan = 8;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, tag);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1153,8 +1153,8 @@ void test_Syscall_cap_revoke_channel_success1(void)
 	int dst1 = 8;		  // Destination capability index
 	int dst2 = 9;		  // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0;
 	s3k_cap_t cap1 = s3k_mk_channel(0, 8);
 	s3k_cap_t cap2 = s3k_mk_socket(chan, mode, perm, tag);
@@ -1182,8 +1182,8 @@ void test_Syscall_cap_revoke_channel_preempted1(void)
 	int dst1 = 8;	       // Destination capability index
 	int dst2 = 9;	       // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0;
 	s3k_cap_t cap1 = s3k_mk_channel(0, 8);
 	s3k_cap_t cap2 = s3k_mk_socket(chan, mode, perm, tag);
@@ -1206,8 +1206,8 @@ void test_Syscall_cap_socket_derive_success1(void)
 	int dst1 = 8; // Destination capability index
 	int dst2 = 9; // Destination capability index
 	int chan = 4;
-	int mode = Ipc_IPC_NOYIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_NOYIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, 0);
 	s3k_cap_t cap2 = s3k_mk_socket(chan, mode, perm, 1);
 	TEST_ASSERT_EQUAL_UINT64(Cap_CAPTY_CHANNEL,
@@ -1230,7 +1230,7 @@ void test_Syscall_sock_send_success1(void)
 	int dst1 = 8;		  // Destination capability index
 	int dst2 = 9;		  // Destination capability index
 	u64 chan = 4;
-	int mode = Ipc_IPC_NOYIELD;
+	int mode = Ipc_ipc_NOYIELD;
 	int perm = 0;
 	int tag = 0xbeef;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, 0);
@@ -1251,7 +1251,7 @@ void test_Syscall_sock_send_success1(void)
 	Syscall_sock_recv(&ks, server, dst1, 0);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BLOCKED | chan << 48,
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_BLOCKED | chan << 48,
 				 ks.ptable[server]->state);
 
 	ks.next_pid = client;
@@ -1279,8 +1279,8 @@ void test_Syscall_sock_send_success2(void)
 	int dst1 = 8;		  // Destination capability index
 	int dst2 = 9;		  // Destination capability index
 	u64 chan = 4;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP;
 	int tag = 0xbeef;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, 0);
 	s3k_cap_t cap2 = s3k_mk_socket(chan, mode, perm, tag);
@@ -1299,7 +1299,7 @@ void test_Syscall_sock_send_success2(void)
 	Syscall_sock_recv(&ks, server, dst1, 0);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BLOCKED | chan << 48,
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_BLOCKED | chan << 48,
 				 ks.ptable[server]->state);
 
 	ks.next_pid = client;
@@ -1309,7 +1309,7 @@ void test_Syscall_sock_send_success2(void)
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[client]->state);
 
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BUSY, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_BUSY, ks.ptable[server]->state);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[server]->t0);
 	TEST_ASSERT_EQUAL_UINT64(tag, ks.ptable[server]->a0);
 	TEST_ASSERT_EQUAL_UINT64(0, ks.ptable[server]->a1);
@@ -1328,8 +1328,8 @@ void test_Syscall_sock_send_success3(void)
 	int dst1 = 8;		  // Destination capability index
 	int dst2 = 9;		  // Destination capability index
 	u64 chan = 4;
-	int mode = Ipc_IPC_YIELD;
-	int perm = Ipc_IPC_SCAP | Ipc_IPC_CCAP;
+	int mode = Ipc_ipc_YIELD;
+	int perm = Ipc_ipc_SCAP | Ipc_ipc_CCAP;
 	int tag = 0xbeef;
 	s3k_cap_t cap1 = s3k_mk_socket(chan, mode, perm, 0);
 	s3k_cap_t cap2 = s3k_mk_socket(chan, mode, perm, tag);
@@ -1348,12 +1348,12 @@ void test_Syscall_sock_send_success3(void)
 	Syscall_sock_recv(&ks, server, dst1, 10);
 	Ptable_release(&ks, server);
 	TEST_ASSERT_EQUAL_UINT64(Error_TIMEOUT, ks.ptable[server]->t0);
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BLOCKED | chan << 48,
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_BLOCKED | chan << 48,
 				 ks.ptable[server]->state);
 
 	u64 msg[4] = {0x2, 0x4, 0x8, 0x10};
 	ks.next_pid = client;
-	ks.ptable[client]->state = Proc_PSF_BUSY;
+	ks.ptable[client]->state = Proc_psf_BUSY;
 	Syscall_sock_send(&ks, client, dst2, dst2, true, msg[0], msg[1], msg[2],
 			  msg[3]);
 	TEST_ASSERT_EQUAL_UINT64(Error_SUCCESS, ks.ptable[client]->t0);
@@ -1365,6 +1365,6 @@ void test_Syscall_sock_send_success3(void)
 	TEST_ASSERT_EQUAL_UINT64(msg[2], ks.ptable[server]->a4);
 	TEST_ASSERT_EQUAL_UINT64(msg[3], ks.ptable[server]->a5);
 	TEST_ASSERT_EQUAL_UINT64(cap2.raw, ks.ptable[server]->a1);
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BUSY, ks.ptable[server]->state);
-	TEST_ASSERT_EQUAL_UINT64(Proc_PSF_BUSY, ks.ptable[client]->state);
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_BUSY, ks.ptable[server]->state);
+	TEST_ASSERT_EQUAL_UINT64(Proc_psf_BUSY, ks.ptable[client]->state);
 }

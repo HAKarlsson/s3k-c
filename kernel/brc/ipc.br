@@ -2,14 +2,14 @@ module Ipc
 
 import Types
 
-defn IPC_YIELD : u64 = 1UL
-defn IPC_NOYIELD : u64 = 0UL
-defn IPC_SCAP : u64 = 2UL
-defn IPC_CCAP : u64 = 8UL
+defn ipc_YIELD : u64 = 1UL
+defn ipc_NOYIELD : u64 = 0UL
+defn ipc_SCAP : u64 = 2UL
+defn ipc_CCAP : u64 = 8UL
 
-defn MSG_BUF_IDX : u64 = 1UL
-defn MSG_SEND_CAP : u64 = 2UL
-defn MSG_DATA_BASE : u64 = 3UL
+defn msg_BUF_IDX : u64 = 1UL
+defn msg_SEND_CAP : u64 = 2UL
+defn msg_DATA_BASE : u64 = 3UL
 
 (* The IPC message is stored in the virtual registers from index 1 to 6 (included) *)
 
@@ -22,7 +22,7 @@ defn do_send_check(ks: kstate, is_server : bool, is_yield : bool, chan_idx: u64,
   in
     if curr_time >= timeout then
       ks.errcode <- Error::PREEMPTED
-    else if (recv_pid == Proc::NULL) || 
+    else if (recv_pid == Proc::pid_NULL) || 
         (((curr_time + ks.ptable[recv_pid].servtime) >= timeout) && is_yield && !is_server) then
       ks.errcode <- Error::NO_RECEIVER
     else 
@@ -33,40 +33,41 @@ defn do_send(ks: kstate, sender_pid: u64, sock_idx: u64) : kstate =
   let curr_time = Machine::time_read(ks.mc) in
   let timeout = Machine::timeout_read(ks.mc, Machine::csrr_mhartid(ks.mc)) in
   let chan_idx = Cap::socket_get_chan(sock) in
-  let is_yield = Cap::socket_get_mode(sock) == IPC_YIELD in
+  let is_yield = Cap::socket_get_mode(sock) == ipc_YIELD in
   let ks = do_send_check(ks, is_server(sock), is_yield, chan_idx, curr_time, timeout) in
-  if ks.errcode == Error::SUCCESS then
-    let recv_pid = Vreg::read(ks, Vreg::V0) in
-    let ks = Ptable::proc_reg_write(ks, recv_pid, Proc::REG_T0, Error::SUCCESS as u64) in
-    let ks = Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A0, Cap::socket_get_tag(sock)) in
-    let ks = Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A2, ks.msg.data0) in
-    let ks = Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A3, ks.msg.data1) in
-    let ks = Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A4, ks.msg.data2) in
-    let ks = Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A5, ks.msg.data3) in
-    let ks =
-      if ks.msg.send_cap then
-        let buf_idx = ks.channels[chan_idx].buf_idx in
-        let ks = Cap_ops::move(ks, ks.msg.buf_idx, buf_idx) in
-        Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A1, ks.ctable[buf_idx])
-      else
-        Ptable::proc_reg_write(ks, recv_pid, Proc::REG_A1, 0UL)
-    in
-    let ks = ks.errcode <- Error::SUCCESS in
-    if is_yield then
-      let ks = Ptable::proc_timeout_set(ks, recv_pid, ks.ptable[sender_pid].timeout) in
-      ks.next_pid <- recv_pid
-    else 
-      let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
-      Ptable::release(ks, recv_pid)
-  else if ks.errcode == Error::PREEMPTED then
-    ks.next_pid <- Proc::NULL
-  else
-    ks
+  match ks.errcode with
+  | Error::SUCCESS =>
+      let recv_pid = Vreg::read(ks, Vreg::vR0) in
+      let ks = Ptable::proc_reg_write(ks, recv_pid, REG_T0, Error::SUCCESS as u64) in
+      let ks = Ptable::proc_reg_write(ks, recv_pid, REG_A0, Cap::socket_get_tag(sock)) in
+      let ks = Ptable::proc_reg_write(ks, recv_pid, REG_A2, ks.msg.data0) in
+      let ks = Ptable::proc_reg_write(ks, recv_pid, REG_A3, ks.msg.data1) in
+      let ks = Ptable::proc_reg_write(ks, recv_pid, REG_A4, ks.msg.data2) in
+      let ks = Ptable::proc_reg_write(ks, recv_pid, REG_A5, ks.msg.data3) in
+      let ks =
+        if ks.msg.send_cap then
+          let buf_idx = ks.channels[chan_idx].buf_idx in
+          let ks = Cap_ops::move(ks, ks.msg.buf_idx, buf_idx) in
+          Ptable::proc_reg_write(ks, recv_pid, REG_A1, ks.ctable[buf_idx])
+        else
+          Ptable::proc_reg_write(ks, recv_pid, REG_A1, 0UL)
+      in
+      let ks = ks.errcode <- Error::SUCCESS in
+      if is_yield then
+        let ks = Ptable::proc_timeout_set(ks, recv_pid, ks.ptable[sender_pid].timeout) in
+        ks.next_pid <- recv_pid
+      else 
+        let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
+        Ptable::release(ks, recv_pid)
+  | Error::PREEMPTED =>
+      ks.next_pid <- Proc::pid_NULL
+  | _ => ks
+  end
 
 defn do_recv(ks: kstate, sock_idx: u64, buf_idx: u64, recv_pid: pid_t) : kstate =
   let sock = ks.ctable[sock_idx] in
   let chan_idx = Cap::socket_get_chan(sock) in
-  let is_yield = Cap::socket_get_mode(sock) == IPC_YIELD in
+  let is_yield = Cap::socket_get_mode(sock) == ipc_YIELD in
   let ks = Ptable::ipc_wait(ks, recv_pid, chan_idx) in
   let ks = Channels::buf_idx_set(ks, chan_idx, buf_idx) in
   let ks = 
@@ -88,7 +89,7 @@ defn do_recv(ks: kstate, sock_idx: u64, buf_idx: u64, recv_pid: pid_t) : kstate 
 defn reply(ks: kstate, sock_idx: u64) : kstate =
   let sock = ks.ctable[sock_idx] in
   let server_pid = ks.next_pid in
-  if ks.msg.send_cap && !((Cap::socket_get_perm(sock) & IPC_SCAP) as bool) then
+  if ks.msg.send_cap && !((Cap::socket_get_perm(sock) & ipc_SCAP) as bool) then
     ks.errcode <- Error::INVALID_SOCKET
   else
     do_send(ks, server_pid, sock_idx)
@@ -96,7 +97,7 @@ defn reply(ks: kstate, sock_idx: u64) : kstate =
 defn send(ks: kstate, sock_idx: u64) : kstate =
   let sock = ks.ctable[sock_idx] in
   let client_pid = ks.next_pid in
-  if ks.msg.send_cap && !((Cap::socket_get_perm(sock) & IPC_CCAP) as bool) then
+  if ks.msg.send_cap && !((Cap::socket_get_perm(sock) & ipc_CCAP) as bool) then
     ks.errcode <- Error::INVALID_SOCKET
   else
     do_send(ks, client_pid, sock_idx)
@@ -105,18 +106,18 @@ defn replyrecv(ks: kstate, sock_idx: u64) : kstate =
   let sock = ks.ctable[sock_idx] in
   let buf_idx = ks.msg.buf_idx in
   let server_pid = ks.next_pid in
-  let can_send_cap = (Cap::socket_get_perm(sock) & IPC_SCAP) as bool in
-  let can_receive_cap = (Cap::socket_get_perm(sock) & IPC_CCAP) as bool in
+  let can_send_cap = (Cap::socket_get_perm(sock) & ipc_SCAP) as bool in
+  let can_receive_cap = (Cap::socket_get_perm(sock) & ipc_CCAP) as bool in
   if ks.msg.send_cap && !can_send_cap then
     ks.errcode <- Error::INVALID_SOCKET
   else if can_receive_cap && !Ctable::is_empty_cap(ks, buf_idx) && !ks.msg.send_cap then
     ks.errcode <- Error::DST_OCCUPIED
   else
-    let ks = ks.next_pid <- Proc::NULL in
+    let ks = ks.next_pid <- Proc::pid_NULL in
     let ks = do_send(ks, server_pid, sock_idx) in
     let ks = 
       if ks.errcode == Error::PREEMPTED then
-        ks.next_pid <- Proc::NULL
+        ks.next_pid <- Proc::pid_NULL
       else if (ks.errcode == Error::NO_RECEIVER) && ks.msg.send_cap then
         Ctable::delete(ks, ks.msg.buf_idx) 
       else ks 
@@ -127,34 +128,35 @@ defn call(ks: kstate, sock_idx: u64) : kstate =
   let sock = ks.ctable[sock_idx] in
   let buf_idx = ks.msg.buf_idx in
   let client_pid = ks.next_pid in
-  let can_send_cap = (Cap::socket_get_perm(sock) & IPC_CCAP) as bool in
-  let can_receive_cap = (Cap::socket_get_perm(sock) & IPC_SCAP) as bool in
+  let can_send_cap = (Cap::socket_get_perm(sock) & ipc_CCAP) as bool in
+  let can_receive_cap = (Cap::socket_get_perm(sock) & ipc_SCAP) as bool in
   if ks.msg.send_cap && !can_send_cap then
     ks.errcode <- Error::INVALID_SOCKET
   else if can_receive_cap && !Ctable::is_empty_cap(ks, buf_idx) && !ks.msg.send_cap then
     ks.errcode <- Error::DST_OCCUPIED
   else
-    let ks = ks.next_pid <- Proc::NULL in
+    let ks = ks.next_pid <- Proc::pid_NULL in
     let ks = do_send(ks, client_pid, sock_idx) in
-    if ks.errcode == Error::SUCCESS then
-      do_recv(ks, sock_idx, buf_idx, client_pid)
-    else if ks.errcode == Error::NO_RECEIVER then
-      ks.next_pid <- client_pid
-    else
-      ks
+    match ks.errcode with
+    | Error::SUCCESS =>
+        do_recv(ks, sock_idx, buf_idx, client_pid)
+    | Error::NO_RECEIVER =>
+        ks.next_pid <- client_pid
+    | _ => ks
+    end
 
 (* Entry points *)
 
 defn cap_sock_send(ks: kstate, sock_idx: u64) : kstate =
   let cap = ks.ctable[sock_idx] in
   let cap_type = Cap::get_type(cap) in
-  let is_suspended = (ks.ptable[ks.next_pid].state & Proc::PSF_SUSPENDED) as bool in
+  let is_suspended = (ks.ptable[ks.next_pid].state & Proc::psf_SUSPENDED) as bool in
   if cap_type == Cap::CAPTY_NONE then
     ks.errcode <- Error::EMPTY
   else if cap_type != Cap::CAPTY_SOCKET then
     ks.errcode <- Error::INVALID_SOCKET
   else if is_suspended then
-    let ks = ks.next_pid <- Proc::NULL in
+    let ks = ks.next_pid <- Proc::pid_NULL in
     ks.errcode <- Error::PREEMPTED
   else if is_server(cap) then
     reply(ks, sock_idx)
@@ -164,28 +166,28 @@ defn cap_sock_send(ks: kstate, sock_idx: u64) : kstate =
 defn cap_sock_recv(ks: kstate, sock_idx: u64, buf_idx: u64) : kstate =
   let cap = ks.ctable[sock_idx] in
   let cap_type = Cap::get_type(cap) in
-  let is_suspended = (ks.ptable[ks.next_pid].state & Proc::PSF_SUSPENDED) as bool in
-  let is_yield = Cap::socket_get_mode(cap) == IPC_YIELD in
+  let is_suspended = (ks.ptable[ks.next_pid].state & Proc::psf_SUSPENDED) as bool in
+  let is_yield = Cap::socket_get_mode(cap) == ipc_YIELD in
   let chan = Cap::socket_get_chan(cap) in
   if cap_type == Cap::CAPTY_NONE then
     ks.errcode <- Error::EMPTY
   else if cap_type != Cap::CAPTY_SOCKET then
     ks.errcode <- Error::INVALID_CAPABILITY
-  else if ((Cap::socket_get_perm(cap) & IPC_CCAP) as bool)
+  else if ((Cap::socket_get_perm(cap) & ipc_CCAP) as bool)
             && !Ctable::is_empty_cap(ks, buf_idx)
   then
     ks.errcode <- Error::DST_OCCUPIED
   else if is_suspended then
-    let ks = ks.next_pid <- Proc::NULL in
+    let ks = ks.next_pid <- Proc::pid_NULL in
     ks.errcode <- Error::TIMEOUT
   else if is_server(cap) then
     let ks = do_recv(ks, sock_idx, buf_idx, ks.next_pid) in
-    let ks = ks.next_pid <- Proc::NULL in
+    let ks = ks.next_pid <- Proc::pid_NULL in
     ks.errcode <- Error::TIMEOUT
   else 
     let server_pid = ks.channels[chan].server in
     let client_pid = ks.next_pid in
-    if (ks.channels[chan].client == client_pid) && (server_pid != Proc::NULL) then
+    if (ks.channels[chan].client == client_pid) && (server_pid != Proc::pid_NULL) then
       let ks = do_recv(ks, sock_idx, buf_idx, ks.next_pid) in
       if is_yield then
         ks.next_pid <- server_pid
@@ -197,13 +199,13 @@ defn cap_sock_recv(ks: kstate, sock_idx: u64, buf_idx: u64) : kstate =
 defn cap_sock_sendrecv(ks: kstate, sock_idx: u64) : kstate =
   let cap = ks.ctable[sock_idx] in
   let cap_type = Cap::get_type(cap) in
-  let is_suspended = (ks.ptable[ks.next_pid].state & Proc::PSF_SUSPENDED) as bool in
+  let is_suspended = (ks.ptable[ks.next_pid].state & Proc::psf_SUSPENDED) as bool in
   if cap_type == Cap::CAPTY_NONE then
     ks.errcode <- Error::EMPTY
   else if cap_type != Cap::CAPTY_SOCKET then
     ks.errcode <- Error::INVALID_CAPABILITY
   else if is_suspended then
-    let ks = ks.next_pid <- Proc::NULL in
+    let ks = ks.next_pid <- Proc::pid_NULL in
     ks.errcode <- Error::PREEMPTED
   else if is_server(cap) then
     replyrecv(ks, sock_idx)
@@ -214,10 +216,10 @@ defn cap_sock_clear(ks: kstate, sock_idx: u64, pid: pid_t) : kstate =
   let sock = ks.ctable[sock_idx] in
   let chan_idx = Cap::socket_get_chan(sock) in 
   if Cap::socket_get_tag(sock) == 0UL then
-    let ks = Channels::server_set(ks, chan_idx, Proc::NULL) in
-    let ks = Channels::client_set(ks, chan_idx, Proc::NULL) in
-    Channels::buf_idx_set(ks, chan_idx, Config::S3K_CAP_CNT + 1UL)
+    let ks = Channels::server_set(ks, chan_idx, Proc::pid_NULL) in
+    let ks = Channels::client_set(ks, chan_idx, Proc::pid_NULL) in
+    Channels::buf_idx_set(ks, chan_idx, Config::s3k_CAP_CNT + 1UL)
   else if ks.channels[chan_idx].client == pid then
-    Channels::client_set(ks, chan_idx, Proc::NULL)
+    Channels::client_set(ks, chan_idx, Proc::pid_NULL)
   else
     ks

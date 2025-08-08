@@ -11,7 +11,7 @@ void proc_init(word_t payload)
 {
 	for (u64 i = 0; i < S3K_PROC_CNT; i++) {
 		ks.ptable[i]->pid = i;
-		ks.ptable[i]->state = Proc_PSF_SUSPENDED;
+		ks.ptable[i]->state = Proc_psf_SUSPENDED;
 	}
 	ks.ptable[0]->state = 0;
 	ks.ptable[0]->pc = (word_t)payload;
@@ -19,7 +19,7 @@ void proc_init(word_t payload)
 
 proc_t *proc_get_opt(pid_t pid)
 {
-	return pid == Proc_NULL ? NULL : ks.ptable[pid];
+	return pid == Proc_pid_NULL ? NULL : ks.ptable[pid];
 }
 
 proc_t *proc_get(pid_t pid)

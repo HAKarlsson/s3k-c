@@ -2,25 +2,24 @@ module Error
 
 (* Error codes *)
 
-type err_t = i64
-
-defn SUCCESS : err_t = 0L
-defn EMPTY : err_t = 1L
-defn SRC_EMPTY : err_t = 2L
-defn DST_OCCUPIED : err_t = 3L
-defn INVALID_INDEX : err_t = 4L
-defn INVALID_DERIVATION : err_t = 5L
-defn INVALID_MONITOR : err_t = 6L
-defn INVALID_PID : err_t = 7L
-defn INVALID_STATE : err_t = 8L
-defn INVALID_PMP : err_t = 9L
-defn INVALID_SLOT : err_t = 10L
-defn INVALID_SOCKET : err_t = 11L
-defn INVALID_SYSCALL : err_t = 12L
-defn INVALID_REGISTER : err_t = 13L
-defn INVALID_CAPABILITY : err_t = 14L
-defn NO_RECEIVER : err_t = 15L
-defn PREEMPTED : err_t = 16L
-defn TIMEOUT : err_t = 17L
-defn SUSPENDED : err_t = 18L
-defn CONTINUE : err_t = -1L
+type err_t =
+  | SUCCESS
+  | EMPTY
+  | SRC_EMPTY
+  | DST_OCCUPIED
+  | INVALID_INDEX
+  | INVALID_DERIVATION
+  | INVALID_MONITOR
+  | INVALID_PID
+  | INVALID_STATE
+  | INVALID_PMP
+  | INVALID_SLOT
+  | INVALID_SOCKET
+  | INVALID_SYSCALL
+  | INVALID_REGISTER
+  | INVALID_CAPABILITY
+  | NO_RECEIVER
+  | PREEMPTED
+  | TIMEOUT
+  | SUSPENDED
+  | CONTINUE

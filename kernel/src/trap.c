@@ -19,8 +19,8 @@ proc_t *trap_handler(proc_t *proc, u64 mcause, u64 mtval)
 	// If not the same process, release the old process.
 	Proc_release(proc);
 
-	// If the next process is Proc_NULL, fetch the next process to run.
-	while (ks.next_pid == Proc_NULL)
+	// If the next process is Proc_pid_NULL, fetch the next process to run.
+	while (ks.next_pid == Proc_pid_NULL)
 		Sched_fetch(&ks);
 
 	// Prepare the next process to run.

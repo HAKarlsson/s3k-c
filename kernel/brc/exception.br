@@ -2,11 +2,11 @@ module Exception
 
 import Types
 
-defn ILLEGAL_INSTRUCTION : u64 = 0x2UL
+defn exc_ILLEGAL_INSTRUCTION : u64 = 0x2UL
 
-defn MRET : u64 = 0x30200073UL
-defn SRET : u64 = 0x10200074UL
-defn URET : u64 = 0x00200073UL
+defn instr_MRET : u64 = 0x30200073UL
+defn instr_SRET : u64 = 0x10200074UL
+defn instr_URET : u64 = 0x00200073UL
 
 defn delegate(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
   let ptable = ks.ptable in
@@ -34,8 +34,8 @@ defn trap_return(ks: kstate, pid: pid_t) : kstate =
 
 defn handler(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
   let ks = ks.next_pid <- pid in
-  if (mcause == ILLEGAL_INSTRUCTION)
-      && ((mtval == MRET) || (mtval == SRET) || (mtval == URET))
+  if (mcause == exc_ILLEGAL_INSTRUCTION)
+      && ((mtval == instr_MRET) || (mtval == instr_SRET) || (mtval == instr_URET))
   then
     trap_return(ks, pid)
   else

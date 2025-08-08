@@ -2,74 +2,38 @@ module Proc
 
 import Types
 
-defn PSF_BUSY : u64 = 1UL
-defn PSF_BLOCKED : u64 = 2UL
-defn PSF_SUSPENDED : u64 = 4UL
+defn psf_BUSY : u64 = 1UL
+defn psf_BLOCKED : u64 = 2UL
+defn psf_SUSPENDED : u64 = 4UL
 
-defn REG_PC : u64 = 0UL
-defn REG_RA : u64 = 1UL
-defn REG_SP : u64 = 2UL
-defn REG_GP : u64 = 3UL
-defn REG_TP : u64 = 4UL
-defn REG_T0 : u64 = 5UL
-defn REG_T1 : u64 = 6UL
-defn REG_T2 : u64 = 7UL
-defn REG_S0 : u64 = 8UL
-defn REG_S1 : u64 = 9UL
-defn REG_A0 : u64 = 10UL
-defn REG_A1 : u64 = 11UL
-defn REG_A2 : u64 = 12UL
-defn REG_A3 : u64 = 13UL
-defn REG_A4 : u64 = 14UL
-defn REG_A5 : u64 = 15UL
-defn REG_A6 : u64 = 16UL
-defn REG_A7 : u64 = 17UL
-defn REG_S2 : u64 = 18UL
-defn REG_S3 : u64 = 19UL
-defn REG_S4 : u64 = 20UL
-defn REG_S5 : u64 = 21UL
-defn REG_S6 : u64 = 22UL
-defn REG_S7 : u64 = 23UL
-defn REG_S8 : u64 = 24UL
-defn REG_S9 : u64 = 25UL
-defn REG_S10 : u64 = 26UL
-defn REG_S11 : u64 = 27UL
-defn REG_T3 : u64 = 28UL
-defn REG_T4 : u64 = 29UL
-defn REG_T5 : u64 = 30UL
-defn REG_T6 : u64 = 31UL
-defn REG_TPC : u64 = 32UL
-defn REG_TSP : u64 = 33UL
-defn REG_EPC : u64 = 34UL
-defn REG_ESP : u64 = 35UL
-defn REG_COUNT : u64 = 36UL
+defn reg_COUNT : u64 = 32UL
 
 (* Encodes an unexisting process. *)
-defn NULL : pid_t = -1UL
+defn pid_NULL : pid_t = -1UL
 
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in
-  let proc = proc.state <- (proc.state | PSF_SUSPENDED) in
-  if (prev & PSF_BLOCKED) as bool then
-    let proc = proc.state <- PSF_SUSPENDED in
+  let proc = proc.state <- (proc.state lor psf_SUSPENDED) in
+  if (prev & psf_BLOCKED) as bool then
+    let proc = proc.state <- psf_SUSPENDED in
     proc.t0 <- (Error::SUSPENDED as u64)
   else
     proc
 
 defn resume(proc: proc_t) : proc_t =
   let proc =
-    if proc.state == PSF_SUSPENDED then
+    if proc.state == psf_SUSPENDED then
       proc.timeout <- 0UL
     else
       proc
   in
-  proc.state <- proc.state & (~PSF_SUSPENDED)
+  proc.state <- proc.state & (~psf_SUSPENDED)
 
 defn release(proc: proc_t) : proc_t =
-  proc.state <- proc.state & (~PSF_BUSY)
+  proc.state <- proc.state & (~psf_BUSY)
 
 defn is_suspended(proc: proc_t) : bool =
-  proc.state == PSF_SUSPENDED
+  proc.state == psf_SUSPENDED
 
 defn pmp_avail(proc: proc_t, slot: pmp_slot_t) : bool =
   proc.pmpcfg[slot] == 0UL
@@ -77,7 +41,7 @@ defn pmp_avail(proc: proc_t, slot: pmp_slot_t) : bool =
 defn pmp_load(proc: proc_t, slot: pmp_slot_t, rwx: pmp_slot_t, addr: napot_t) : proc_t =
   let pcfg = proc.pmpcfg in
   let paddr = proc.pmpaddr in
-  let pcfg = pcfg[slot] <- (rwx | 0x18UL) in
+  let pcfg = pcfg[slot] <- (rwx lor 0x18UL) in
   let paddr = paddr[slot] <- addr in
   let proc = proc.pmpcfg <- pcfg in
   proc.pmpaddr <- paddr

@@ -6,17 +6,17 @@ capabilities:
   - name: time 
     fields:
       pad: 12
-      bgn: 16
+      low: 16
       mrk: 16
-      end: 16
+      upp: 16
   - name: memory
     fields:
       rwx: 3
       lck: 1
       tag: 8
-      bgn: 16
+      low: 16
       mrk: 16
-      end: 16
+      upp: 16
   - name: pmp
     fields:
       rwx: 3
@@ -26,15 +26,15 @@ capabilities:
   - name: monitor
     fields:
       pad: 12
-      bgn: 16
+      low: 16
       mrk: 16
-      end: 16
+      upp: 16
   - name: channel
     fields:
       pad: 12
-      bgn: 16
+      low: 16
       mrk: 16
-      end: 16
+      upp: 16
   - name: socket
     fields:
       mode: 4

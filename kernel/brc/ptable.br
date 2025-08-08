@@ -2,87 +2,89 @@ module Ptable
 
 import Types
 
-defn proc_reg_read(ks: kstate, pid: pid_t, reg: u64) : word_t =
+defn proc_reg_read(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
   let proc = ks.ptable[pid] in
-  if reg == Proc::REG_PC then proc.pc
-  else if reg == Proc::REG_RA then proc.ra
-  else if reg == Proc::REG_SP then proc.sp
-  else if reg == Proc::REG_GP then proc.gp
-  else if reg == Proc::REG_TP then proc.tp
-  else if reg == Proc::REG_T0 then proc.t0
-  else if reg == Proc::REG_T1 then proc.t1
-  else if reg == Proc::REG_T2 then proc.t2
-  else if reg == Proc::REG_S0 then proc.s0
-  else if reg == Proc::REG_S1 then proc.s1
-  else if reg == Proc::REG_A0 then proc.a0
-  else if reg == Proc::REG_A1 then proc.a1
-  else if reg == Proc::REG_A2 then proc.a2
-  else if reg == Proc::REG_A3 then proc.a3
-  else if reg == Proc::REG_A4 then proc.a4
-  else if reg == Proc::REG_A5 then proc.a5
-  else if reg == Proc::REG_A6 then proc.a6
-  else if reg == Proc::REG_A7 then proc.a7
-  else if reg == Proc::REG_S2 then proc.s2
-  else if reg == Proc::REG_S3 then proc.s3
-  else if reg == Proc::REG_S4 then proc.s4
-  else if reg == Proc::REG_S5 then proc.s5
-  else if reg == Proc::REG_S6 then proc.s6
-  else if reg == Proc::REG_S7 then proc.s7
-  else if reg == Proc::REG_S8 then proc.s8
-  else if reg == Proc::REG_S9 then proc.s9
-  else if reg == Proc::REG_S10 then proc.s10
-  else if reg == Proc::REG_S11 then proc.s11
-  else if reg == Proc::REG_T3 then proc.t3
-  else if reg == Proc::REG_T4 then proc.t4
-  else if reg == Proc::REG_T5 then proc.t5
-  else if reg == Proc::REG_T6 then proc.t6
-  else if reg == Proc::REG_TPC then proc.tpc
-  else if reg == Proc::REG_TSP then proc.tsp
-  else if reg == Proc::REG_EPC then proc.epc
-  else if reg == Proc::REG_ESP then proc.esp
-  else 0UL
+  match reg with
+  | REG_PC => proc.pc
+  | REG_RA => proc.ra
+  | REG_SP => proc.sp
+  | REG_GP => proc.gp
+  | REG_TP => proc.tp
+  | REG_T0 => proc.t0
+  | REG_T1 => proc.t1
+  | REG_T2 => proc.t2
+  | REG_S0 => proc.s0
+  | REG_S1 => proc.s1
+  | REG_A0 => proc.a0
+  | REG_A1 => proc.a1
+  | REG_A2 => proc.a2
+  | REG_A3 => proc.a3
+  | REG_A4 => proc.a4
+  | REG_A5 => proc.a5
+  | REG_A6 => proc.a6
+  | REG_A7 => proc.a7
+  | REG_S2 => proc.s2
+  | REG_S3 => proc.s3
+  | REG_S4 => proc.s4
+  | REG_S5 => proc.s5
+  | REG_S6 => proc.s6
+  | REG_S7 => proc.s7
+  | REG_S8 => proc.s8
+  | REG_S9 => proc.s9
+  | REG_S10 => proc.s10
+  | REG_S11 => proc.s11
+  | REG_T3 => proc.t3
+  | REG_T4 => proc.t4
+  | REG_T5 => proc.t5
+  | REG_T6 => proc.t6
+  | REG_TPC => proc.tpc
+  | REG_TSP => proc.tsp
+  | REG_EPC => proc.epc
+  | REG_ESP => proc.esp
+  end
 
-defn proc_reg_write(ks: kstate, pid: pid_t, reg: u64, val: word_t) : kstate =
+defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
   let proc =
-    if reg == Proc::REG_PC then proc.pc <- val
-    else if reg == Proc::REG_RA then proc.sp <- val
-    else if reg == Proc::REG_SP then proc.sp <- val
-    else if reg == Proc::REG_GP then proc.gp <- val
-    else if reg == Proc::REG_TP then proc.tp <- val
-    else if reg == Proc::REG_T0 then proc.t0 <- val
-    else if reg == Proc::REG_T1 then proc.t1 <- val
-    else if reg == Proc::REG_T2 then proc.t2 <- val
-    else if reg == Proc::REG_S0 then proc.s0 <- val
-    else if reg == Proc::REG_S1 then proc.s1 <- val
-    else if reg == Proc::REG_A0 then proc.a0 <- val
-    else if reg == Proc::REG_A1 then proc.a1 <- val
-    else if reg == Proc::REG_A2 then proc.a2 <- val
-    else if reg == Proc::REG_A3 then proc.a3 <- val
-    else if reg == Proc::REG_A4 then proc.a4 <- val
-    else if reg == Proc::REG_A5 then proc.a5 <- val
-    else if reg == Proc::REG_A6 then proc.a6 <- val
-    else if reg == Proc::REG_A7 then proc.a7 <- val
-    else if reg == Proc::REG_S2 then proc.s2 <- val
-    else if reg == Proc::REG_S3 then proc.s3 <- val
-    else if reg == Proc::REG_S4 then proc.s4 <- val
-    else if reg == Proc::REG_S5 then proc.s5 <- val
-    else if reg == Proc::REG_S6 then proc.s6 <- val
-    else if reg == Proc::REG_S7 then proc.s7 <- val
-    else if reg == Proc::REG_S8 then proc.s8 <- val
-    else if reg == Proc::REG_S9 then proc.s9 <- val
-    else if reg == Proc::REG_S10 then proc.s10 <- val
-    else if reg == Proc::REG_S11 then proc.s11 <- val
-    else if reg == Proc::REG_T3 then proc.t3 <- val
-    else if reg == Proc::REG_T4 then proc.t4 <- val
-    else if reg == Proc::REG_T5 then proc.t5 <- val
-    else if reg == Proc::REG_T6 then proc.t6 <- val
-    else if reg == Proc::REG_TPC then proc.tpc <- val
-    else if reg == Proc::REG_TSP then proc.tsp <- val
-    else if reg == Proc::REG_EPC then proc.epc <- val
-    else if reg == Proc::REG_ESP then proc.esp <- val
-    else proc
+    match reg with
+    | REG_PC => proc.pc <- val
+    | REG_RA => proc.sp <- val
+    | REG_SP => proc.sp <- val
+    | REG_GP => proc.gp <- val
+    | REG_TP => proc.tp <- val
+    | REG_T0 => proc.t0 <- val
+    | REG_T1 => proc.t1 <- val
+    | REG_T2 => proc.t2 <- val
+    | REG_S0 => proc.s0 <- val
+    | REG_S1 => proc.s1 <- val
+    | REG_A0 => proc.a0 <- val
+    | REG_A1 => proc.a1 <- val
+    | REG_A2 => proc.a2 <- val
+    | REG_A3 => proc.a3 <- val
+    | REG_A4 => proc.a4 <- val
+    | REG_A5 => proc.a5 <- val
+    | REG_A6 => proc.a6 <- val
+    | REG_A7 => proc.a7 <- val
+    | REG_S2 => proc.s2 <- val
+    | REG_S3 => proc.s3 <- val
+    | REG_S4 => proc.s4 <- val
+    | REG_S5 => proc.s5 <- val
+    | REG_S6 => proc.s6 <- val
+    | REG_S7 => proc.s7 <- val
+    | REG_S8 => proc.s8 <- val
+    | REG_S9 => proc.s9 <- val
+    | REG_S10 => proc.s10 <- val
+    | REG_S11 => proc.s11 <- val
+    | REG_T3 => proc.t3 <- val
+    | REG_T4 => proc.t4 <- val
+    | REG_T5 => proc.t5 <- val
+    | REG_T6 => proc.t6 <- val
+    | REG_TPC => proc.tpc <- val
+    | REG_TSP => proc.tsp <- val
+    | REG_EPC => proc.epc <- val
+    | REG_ESP => proc.esp <- val
+    end
   in
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
@@ -117,18 +119,18 @@ defn proc_timeout_set(ks: kstate, pid: pid_t, val: word_t) : kstate =
 
 defn acquire(ks: kstate, pid: pid_t) : kstate =
   let expected = ks.ptable[pid].state in
-  let desired = Proc::PSF_BUSY in
-  if (expected & (Proc::PSF_BUSY | Proc::PSF_SUSPENDED)) as bool then
-    Vreg::write(ks, Vreg::V0, false as u64)
+  let desired = Proc::psf_BUSY in
+  if (expected & (Proc::psf_BUSY lor Proc::psf_SUSPENDED)) as bool then
+    Vreg::write(ks, Vreg::vR0, false as u64)
   else if Machine::time_read(ks.mc) < ks.ptable[pid].timeout then
-    Vreg::write(ks, Vreg::V0, false as u64)
+    Vreg::write(ks, Vreg::vR0, false as u64)
   else
     let ptable = ks.ptable in
     let proc = ptable[pid] in
     let proc = proc.state <- desired in
     let ptable = ptable[pid] <- proc in
     let ks = ks.ptable <- ptable in
-    Vreg::write(ks, Vreg::V0, true as u64)
+    Vreg::write(ks, Vreg::vR0, true as u64)
 
 defn suspend(ks: kstate, pid: pid_t) : kstate =
   let proc = Proc::suspend(ks.ptable[pid]) in
@@ -146,17 +148,17 @@ defn release(ks: kstate, pid: pid_t) : kstate =
   ks.ptable <- ptable
 
 defn ipc_acquire(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
-  let expected = Proc::PSF_BLOCKED | (chan_idx << 48UL) in
-  let desired = Proc::PSF_BUSY in
+  let expected = Proc::psf_BLOCKED lor (chan_idx << 48UL) in
+  let desired = Proc::psf_BUSY in
   if ks.ptable[pid].state == expected then
     let ks = proc_state_set(ks, pid, desired) in
-    let ks = Vreg::write(ks, Vreg::V0, pid) in
+    let ks = Vreg::write(ks, Vreg::vR0, pid) in
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- Error::NO_RECEIVER
 
 defn ipc_wait(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
-  proc_state_set(ks, pid, (chan_idx << 48UL) | Proc::PSF_BLOCKED | Proc::PSF_BUSY)
+  proc_state_set(ks, pid, (chan_idx << 48UL) lor Proc::psf_BLOCKED lor Proc::psf_BUSY)
 
 defn is_suspended(ks: kstate, pid: pid_t) : bool =
   Proc::is_suspended(ks.ptable[pid])

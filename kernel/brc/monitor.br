@@ -7,7 +7,7 @@ defn check(ks: kstate, midx: u64, pid: pid_t, check_suspended: bool) : Error::er
   let mon_type = Cap::get_type(mon) in
   if (mon_type != Cap::CAPTY_MONITOR)
       || (Cap::monitor_get_mrk(mon) > pid)
-      || (pid >= Cap::monitor_get_end(mon))
+      || (pid >= Cap::monitor_get_upp(mon))
   then
     Error::INVALID_MONITOR
   else if (check_suspended && !(Ptable::is_suspended(ks, pid))) then
@@ -49,7 +49,7 @@ defn cap_resume(ks: kstate, midx: u64, pid: pid_t) : kstate =
 defn cap_state_get(ks: kstate, midx: u64, pid: pid_t) : kstate =
   let err = check(ks, midx, pid, false) in
   if err == Error::SUCCESS then
-    let ks = Vreg::write(ks, Vreg::V0, ks.ptable[pid].state) in
+    let ks = Vreg::write(ks, Vreg::vR0, ks.ptable[pid].state) in
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- err
@@ -66,16 +66,16 @@ defn cap_yield(ks: kstate, midx: u64, pid: pid_t) : kstate =
   else
     ks.errcode <- err
 
-defn cap_reg_read(ks: kstate, midx: u64, pid: pid_t, reg: u64) : kstate =
+defn cap_reg_read(ks: kstate, midx: u64, pid: pid_t, reg: reg_t) : kstate =
   let err = check(ks, midx, pid, true) in
   if err == Error::SUCCESS then
     let val = Ptable::proc_reg_read(ks, pid, reg) in
-    let ks = Vreg::write(ks, Vreg::V0, val) in
+    let ks = Vreg::write(ks, Vreg::vR0, val) in
     ks.errcode <- Error::SUCCESS
   else
     ks.errcode <- err
 
-defn cap_reg_write(ks: kstate, midx: u64, pid: pid_t, reg: u64, val: word_t) : kstate =
+defn cap_reg_write(ks: kstate, midx: u64, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let err = check(ks, midx, pid, true) in
   if err == Error::SUCCESS then
     let ks = Ptable::proc_reg_write(ks, pid, reg, val) in

@@ -42,7 +42,7 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	ks.tslots = _tslots;
 	ks.channels = _pchannels;
 	ks.msg = &_msg;
-	ks.next_pid = Proc_NULL; // Initialize next PID to NULL
+	ks.next_pid = Proc_pid_NULL; // Initialize next PID to NULL
 
 	// Zero the capability table
 	for (unsigned int i = 0; i < ARRAY_SIZE(_ctable); i++) {
@@ -66,7 +66,7 @@ void kstate_init(const cap_t init_caps[], size_t size)
 		}
 		_procs[i].pmpaddr = _pmpaddr[i];
 		_procs[i].pmpcfg = _pmpcfg[i];
-		ks.ptable[i]->state = Proc_PSF_SUSPENDED;
+		ks.ptable[i]->state = Proc_psf_SUSPENDED;
 		ks.ptable[i]->pid = i;
 	}
 
@@ -92,9 +92,9 @@ void kstate_init(const cap_t init_caps[], size_t size)
 		prev = i;
 		if (Cap_get_type(cap) == Cap_CAPTY_TIME) {
 			// Update the time slots when inserting a time capability
-			Sched_update(&ks, 0, Cap_time_get_end(cap),
+			Sched_update(&ks, 0, Cap_time_get_upp(cap),
 				     Cap_time_get_mrk(cap),
-				     Cap_time_get_end(cap));
+				     Cap_time_get_upp(cap));
 		}
 		kprintf("# init_caps[%d]: %C\n", i, cap);
 	}

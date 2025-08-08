@@ -66,12 +66,12 @@ class Capability:
         output = []
         parameters = [f"{name}: u64" for name in self.fields() if name != "pad"]
         output.append(f"defn mk_{self.name()}({', '.join(parameters)}) : u64 =")
-        builder = f"  {self.type()}"
+        builder = f"  ({self.type()} as u64)"
         for field in self.fields('word0'):
             if field == "pad":
                 continue
             offset = self.offset(field)
-            builder += f" | {field} << {offset}UL"
+            builder += f" lor {field} << {offset}UL"
         output.append(builder)
         return "\n".join(output)
 
@@ -104,27 +104,28 @@ class Capability:
         if self.size(field) == 1:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: bool) : u64 =")
             if offset:
-                output.append(f"  (cap & ~{hex(mask)}UL) | ((v as u64) << {offset}UL)")
+                output.append(f"  (cap & ~{hex(mask)}UL) lor ((v as u64) << {offset}UL)")
             else:
-                output.append(f"  (cap & ~{hex(mask)}UL) | (v as u64)")
+                output.append(f"  (cap & ~{hex(mask)}UL) lor (v as u64)")
         else:
             output.append(f"defn {name}_set_{field}(cap: cap_t, v: u64) : u64 =")
             if offset:
-                output.append(f"  (cap & ~{hex(mask)}UL) | (v << {offset}UL)")
+                output.append(f"  (cap & ~{hex(mask)}UL) lor (v << {offset}UL)")
             else:
-                output.append(f"  (cap & ~{hex(mask)}UL) | v")
+                output.append(f"  (cap & ~{hex(mask)}UL) lor v")
         return "\n".join(output)
 
 
 # Open the file and load the file
 def main(capabilities):
     output = ["(* Capability types *)"]
-    for i, cap in enumerate(capabilities):
-        output.append(f"defn CAPTY_{cap['name'].upper()} : u64 = {i}UL")
+    output.append("type capty =")
+    for cap in capabilities:
+        output.append(f"  | CAPTY_{cap['name'].upper()}")
     output.append("\n(* Number of capability types (incl. null cap) *)")
-    output.append(f"defn CAPTY_COUNT : u64 = {len(capabilities)}UL")
+    output.append(f"defn capty_COUNT : u64 = {len(capabilities)}UL")
     output.append("\n(* Capability type *)")
-    output.append(f"defn get_type(cap: cap_t) : u64 = (cap & 0xfUL)")
+    output.append(f"defn get_type(cap: cap_t) : capty = (cap & 0xfUL) as capty")
     for cap in capabilities:
         output.append(f"\n(* {cap['name']} capability *)")
         capability = Capability(**cap)
@@ -149,26 +150,26 @@ import Types
 
 is_valid_cap ='''
 defn is_valid(cap: cap_t) : bool =
-  let cap_type = get_type(cap) in
-  if cap_type == CAPTY_TIME then
-    (time_get_bgn(cap) < time_get_end(cap))
-    && (time_get_bgn(cap) == time_get_mrk(cap))
-  else if cap_type == CAPTY_MEMORY then
-    !memory_get_lck(cap)
-    && (memory_get_bgn(cap) < memory_get_end(cap))
-    && (memory_get_bgn(cap) == memory_get_mrk(cap))
-  else if cap_type == CAPTY_PMP then
-    !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
-  else if cap_type == CAPTY_MONITOR then
-    (monitor_get_bgn(cap) < monitor_get_end(cap))
-    && (monitor_get_bgn(cap) == monitor_get_mrk(cap))
-  else if cap_type == CAPTY_CHANNEL then
-    (channel_get_bgn(cap) < channel_get_end(cap))
-    && (channel_get_bgn(cap) == channel_get_mrk(cap))
-  else if cap_type == CAPTY_SOCKET then
-    (socket_get_mode(cap) == 0UL) || (socket_get_mode(cap) == 1UL)
-  else
-    false'''
+  match get_type(cap) with
+  | CAPTY_TIME =>
+      (time_get_low(cap) < time_get_upp(cap))
+      && (time_get_low(cap) == time_get_mrk(cap))
+  | CAPTY_MEMORY =>
+      !memory_get_lck(cap)
+      && (memory_get_low(cap) < memory_get_upp(cap))
+      && (memory_get_low(cap) == memory_get_mrk(cap))
+  | CAPTY_PMP =>
+      !pmp_get_used(cap) && (pmp_get_slot(cap) == 0UL)
+  | CAPTY_MONITOR =>
+      (monitor_get_low(cap) < monitor_get_upp(cap))
+      && (monitor_get_low(cap) == monitor_get_mrk(cap))
+  | CAPTY_CHANNEL =>
+      (channel_get_low(cap) < channel_get_upp(cap))
+      && (channel_get_low(cap) == channel_get_mrk(cap))
+  | CAPTY_SOCKET =>
+      (socket_get_mode(cap) == 0UL) || (socket_get_mode(cap) == 1UL)
+  | _ => false
+  end'''
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

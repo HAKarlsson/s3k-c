@@ -31,14 +31,14 @@ void cap_print(cap_t cap)
 	if (ctype == Cap_CAPTY_NONE)
 		kprintf("NONE{}");
 	else if (ctype == Cap_CAPTY_TIME)
-		kprintf("TIME{bgn=%d,end=%d,mrk=%d}", Cap_time_get_bgn(cap),
-			Cap_time_get_end(cap), Cap_time_get_mrk(cap));
+		kprintf("TIME{bgn=%d,end=%d,mrk=%d}", Cap_time_get_low(cap),
+			Cap_time_get_upp(cap), Cap_time_get_mrk(cap));
 
 	else if (ctype == Cap_CAPTY_MEMORY) {
 		u64 bgn = Util_tag_block_to_addr(Cap_memory_get_tag(cap),
-						 Cap_memory_get_bgn(cap));
+						 Cap_memory_get_low(cap));
 		u64 end = Util_tag_block_to_addr(Cap_memory_get_tag(cap),
-						 Cap_memory_get_end(cap));
+						 Cap_memory_get_upp(cap));
 		u64 mrk = Util_tag_block_to_addr(Cap_memory_get_tag(cap),
 						 Cap_memory_get_mrk(cap));
 		kprintf("MEMORY{bgn=0x%X,end=0x%X,mrk=0x%X,rwx=%s,lck=%x}", bgn,
@@ -55,12 +55,12 @@ void cap_print(cap_t cap)
 			Cap_pmp_get_slot(cap));
 	} else if (ctype == Cap_CAPTY_MONITOR)
 		kprintf("MONITOR{bgn=%d,end=%d,mrk=%d}",
-			Cap_monitor_get_bgn(cap), Cap_monitor_get_end(cap),
+			Cap_monitor_get_low(cap), Cap_monitor_get_upp(cap),
 			Cap_monitor_get_mrk(cap));
 
 	else if (ctype == Cap_CAPTY_CHANNEL)
 		kprintf("CHANNEL{bgn=%d,end=%d,mrk=%d}",
-			Cap_channel_get_bgn(cap), Cap_channel_get_end(cap),
+			Cap_channel_get_low(cap), Cap_channel_get_upp(cap),
 			Cap_channel_get_mrk(cap));
 
 	else if (ctype == Cap_CAPTY_SOCKET)
