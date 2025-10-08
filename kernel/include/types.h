@@ -60,8 +60,8 @@ typedef enum {
 	SYSCALL_CAP_READ,   // Read the properties of a capability
 	SYSCALL_CAP_MOVE,   // Move a capability to a different slot
 	SYSCALL_CAP_DELETE, // Remove a capability from the system
-	SYSCALL_CAP_REVOKE, // Revoke a derived capabilities
 	SYSCALL_CAP_DERIVE, // Derive a new capability from an existing one
+	SYSCALL_CAP_REVOKE, // Revoke a derived capabilities
 
 	// PMP
 	SYSCALL_PMP_LOAD,

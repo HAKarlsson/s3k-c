@@ -467,10 +467,10 @@ proc_t *syscall_handler(proc_t *proc)
 		return _cap_move(proc, args);
 	case SYSCALL_CAP_DELETE:
 		return _cap_delete(proc, args);
-	case SYSCALL_CAP_REVOKE:
-		return _cap_revoke(proc, args);
 	case SYSCALL_CAP_DERIVE:
 		return _cap_derive(proc, args);
+	case SYSCALL_CAP_REVOKE:
+		return _cap_revoke(proc, args);
 	case SYSCALL_PMP_LOAD:
 		return _pmp_load(proc, args);
 	case SYSCALL_PMP_UNLOAD:
