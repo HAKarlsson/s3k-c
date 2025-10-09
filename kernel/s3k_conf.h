@@ -1,11 +1,11 @@
 // Number of user processes
-#define S3K_PROC_CNT 2
+#define S3K_PROC_CNT 8
 
 // Number of capabilities per process.
 #define S3K_CAP_CNT 32
 
 // Number of IPC channels.
-#define S3K_CHAN_CNT 2
+#define S3K_CHAN_CNT 8
 
 // Number of slots per period
 #define S3K_SLOT_CNT 32ull

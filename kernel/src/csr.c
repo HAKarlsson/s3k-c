@@ -21,6 +21,13 @@ uint64_t csrr_mip(void)
 	return mip;
 }
 
+uint64_t csrr_mcycle(void)
+{
+	uint64_t mcycle;
+	__asm__ volatile("csrr %0, mcycle" : "=r"(mcycle));
+	return mcycle;
+}
+
 void csrw_pmpaddr0(word_t addr)
 {
 	__asm__ volatile("csrw pmpaddr0, %0" : : "r"(addr));

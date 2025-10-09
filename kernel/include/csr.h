@@ -23,6 +23,8 @@ word_t csrr_mhartid(void);
 word_t csrr_mie(void);
 word_t csrr_mip(void);
 
+word_t csrr_mcycle(void);
+
 void csrw_pmpaddr0(word_t addr);
 void csrw_pmpaddr1(word_t addr);
 void csrw_pmpaddr2(word_t addr);
