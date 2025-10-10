@@ -95,6 +95,5 @@ proc_t *sched(void)
 		proc = sched_fetch(slot);
 	} while (!proc);
 	rtc_timeout_set(hart, proc->timeout);
-	if (proc->pid == 1)
 	return proc;
 }
