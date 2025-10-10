@@ -261,7 +261,8 @@ typedef union cap {
 		rwx_t rwx : 3;
 		bool used : 1;
 		pmp_slot_t slot;
-		uint64_t addr : 48;
+		uint32_t addr_lo;
+		uint16_t addr_hi;
 	} pmp;
 
 	struct {

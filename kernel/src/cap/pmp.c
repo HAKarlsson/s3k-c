@@ -13,7 +13,8 @@ err_t cap_pmp_load(cte_t pmp, pmp_slot_t slot)
 	if (!proc_pmp_avail(proc, slot))
 		return ERR_DST_OCCUPIED;
 
-	proc_pmp_load(proc, slot, cap.pmp.rwx, cap.pmp.addr);
+	uint64_t addr = cap.raw >> 16;
+	proc_pmp_load(proc, slot, cap.pmp.rwx, addr);
 	cap.pmp.slot = slot;
 	cap.pmp.used = 1;
 	cte_set_cap(pmp, &cap);

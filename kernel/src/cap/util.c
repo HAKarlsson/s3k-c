@@ -31,10 +31,10 @@ void cap_mk_memory(cap_t *cap, addr_t bgn, addr_t end, rwx_t rwx)
 void cap_mk_pmp(cap_t *cap, napot_t addr, rwx_t rwx)
 {
 	cap->pmp.type = CAPTY_PMP;
-	cap->pmp.addr = addr;
 	cap->pmp.rwx = rwx;
 	cap->pmp.used = 0;
 	cap->pmp.slot = 0;
+	cap->raw |= addr << 16;
 }
 
 void cap_mk_monitor(cap_t *cap, pid_t bgn, pid_t end)
@@ -105,8 +105,9 @@ void cap_print(const cap_t *cap)
 			end, mrk, rwx2str(cap->mem.rwx), cap->mem.lck);
 	} break;
 	case CAPTY_PMP: {
-		word_t pmp_base = pmp_napot_decode_base(cap->pmp.addr);
-		word_t pmp_size = pmp_napot_decode_size(cap->pmp.addr);
+		word_t pmp_addr = cap->raw >> 16;
+		word_t pmp_base = pmp_napot_decode_base(pmp_addr);
+		word_t pmp_size = pmp_napot_decode_size(pmp_addr);
 		kprintf("PMP{bgn=0x%X,end=0x%X,rwx=%s,used=%d,slot=%d}",
 			pmp_base, pmp_base + pmp_size, rwx2str(cap->mem.rwx),
 			cap->pmp.used, cap->pmp.slot);

@@ -47,17 +47,12 @@ c_args = [
 	'-ffreestanding',
 	'-include', platdir / 'config.h',
 	'-include', 's3k_conf.h',
-	'-flto',
-    	'-fstack-usage',
 ]
 
 link_args = [
 	'-nostartfiles',
-	'-nodefaultlibs',
 	'-nostdlib',
 	'-T', platdir / 'linker.ld',
-	'-flto',
-    	'-fstack-usage',
 ]
 
 elf = executable('s3k.elf',

@@ -227,7 +227,8 @@ err_t cap_revoke_memory(cte_t parent, cap_t *pcap)
 			   CONTINUE;
 	}
 
-	word_t pmp_base = pmp_napot_decode_base(ccap.pmp.addr);
+	uint64_t pmp_addr = ccap.raw >> 16;
+	word_t pmp_base = pmp_napot_decode_base(pmp_addr);
 
 	if (ccap.type == CAPTY_PMP
 	    && tag_block_to_addr(pcap->mem.tag, pcap->mem.bgn) <= pmp_base) {
@@ -264,8 +265,9 @@ err_t cap_derive_memory(cte_t src, cap_t *cap, cte_t dst, const cap_t *new_cap)
 		return SUCCESS;
 	}
 
-	word_t pmp_base = pmp_napot_decode_base(new_cap->pmp.addr);
-	word_t pmp_size = pmp_napot_decode_size(new_cap->pmp.addr);
+	uint64_t pmp_addr = (new_cap->raw >> 16); 
+	word_t pmp_base = pmp_napot_decode_base(pmp_addr);
+	word_t pmp_size = pmp_napot_decode_size(pmp_addr);
 	uint64_t mem_mrk, mem_end;
 	mem_mrk = tag_block_to_addr(cap->mem.tag, cap->mem.mrk);
 	mem_end = tag_block_to_addr(cap->mem.tag, cap->mem.end);
