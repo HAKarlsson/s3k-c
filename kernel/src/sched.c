@@ -13,9 +13,9 @@
 
 typedef struct slot_info {
 	// Owner of time slot.
-	uint8_t pid;
+	uint32_t pid;
 	// Remaining length of corresponding slice.
-	uint8_t length;
+	uint32_t length;
 } slot_info_t;
 
 struct sched_decision {
@@ -60,26 +60,22 @@ static void slot_info_get(uint64_t slot, slot_info_t *si)
 
 static proc_t *sched_fetch(uint64_t slot)
 {
-	proc_t *proc = NULL;
 	slot_info_t si;
 	// Get time slot information
 	slot_info_get(slot, &si);
 
 	// If length = 0, then slice is deleted.
 	if (si.length == 0)
-		goto fail;
+		return NULL;
 
-	proc = proc_get(si.pid);
+	proc_t *proc = proc_get(si.pid);
 
 	// Try to acquire the process.
-	if (!proc_acquire(proc)) {
-		proc = NULL;
-		goto fail;
-	}
+	if (!proc_acquire(proc))
+		return NULL;
 
 	// Get the process.
 	proc->timeout = (slot + si.length) * S3K_SLOT_LEN;
-fail:
 	return proc;
 }
 
@@ -95,11 +91,10 @@ proc_t *sched(void)
 
 	do {
 		slot = rtc_time_get() / S3K_SLOT_LEN;
-		while (rtc_time_get() < slot * S3K_SLOT_LEN)
-			;
 		// Try schedule process
 		proc = sched_fetch(slot);
 	} while (!proc);
 	rtc_timeout_set(hart, proc->timeout);
+	if (proc->pid == 1)
 	return proc;
 }

@@ -12,7 +12,6 @@ extern char __uart[];
 void kernel_init(void)
 {
 	kputs("# Kernel init");
-	kputs("# Initialize capability table");
 	cap_t init_caps[6];
 	cap_mk_pmp(&init_caps[0], pmp_napot_encode(0x80010000, 0x10000),
 		   MEM_RWX);
@@ -28,11 +27,8 @@ void kernel_init(void)
 	}
 	ctable_init(init_caps, ARRAY_SIZE(init_caps));
 
-	kputs("# Initialize scheduler");
 	sched_init();
-	kputs("# Initialize processes");
 	proc_init(0x80010000);
-	kputs("# Load INIT PMP");
 	cap_pmp_load(ctable_get(0, 0), 0);
 }
 

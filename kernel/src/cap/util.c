@@ -67,6 +67,26 @@ void cap_mk_socket(cap_t *cap, chan_t chan, ipc_mode_t mode, ipc_perm_t perm,
 	cap->sock.tag = tag;
 }
 
+const char *rwx2str(rwx_t rwx)
+{
+	switch (rwx) {
+	case MEM_RWX:
+		return "RWX";
+	case MEM_RW:
+		return "RW-";
+	case MEM_RX:
+		return "R-X";
+	case MEM_R:
+		return "R--";
+	case MEM_W:
+		return "-W-";
+	case MEM_X:
+		return "--X";
+	default:
+		return "---";
+	}
+}
+
 void cap_print(const cap_t *cap)
 {
 	switch (cap->type) {
@@ -81,14 +101,14 @@ void cap_print(const cap_t *cap)
 		uint64_t bgn = tag_block_to_addr(cap->mem.tag, cap->mem.bgn);
 		uint64_t end = tag_block_to_addr(cap->mem.tag, cap->mem.end);
 		uint64_t mrk = tag_block_to_addr(cap->mem.tag, cap->mem.mrk);
-		kprintf("MEMORY{bgn=0x%X,end=0x%X,mrk=0x%X,rwx=%d,lck=%x}", bgn,
-			end, mrk, cap->mem.rwx, cap->mem.lck);
+		kprintf("MEMORY{bgn=0x%X,end=0x%X,mrk=0x%X,rwx=%s,lck=%x}", bgn,
+			end, mrk, rwx2str(cap->mem.rwx), cap->mem.lck);
 	} break;
 	case CAPTY_PMP: {
 		word_t pmp_base = pmp_napot_decode_base(cap->pmp.addr);
 		word_t pmp_size = pmp_napot_decode_size(cap->pmp.addr);
-		kprintf("PMP{bgn=0x%X,end=0x%X,rwx=%d,used=%d,slot=%d}",
-			pmp_base, pmp_base + pmp_size, cap->pmp.rwx,
+		kprintf("PMP{bgn=0x%X,end=0x%X,rwx=%s,used=%d,slot=%d}",
+			pmp_base, pmp_base + pmp_size, rwx2str(cap->mem.rwx),
 			cap->pmp.used, cap->pmp.slot);
 	} break;
 	case CAPTY_MONITOR:
