@@ -66,3 +66,12 @@ elf = executable('s3k.elf',
 	c_args : c_args,
 	link_args : link_args,
 )
+
+objdump = find_program('riscv64-unknown-elf-objdump')
+da = custom_target(
+    'da',
+    command : [objdump, '-d', elf.full_path()],
+    capture : true,
+    depends : [elf],
+    output : ['s3k.da']
+)
