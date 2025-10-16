@@ -65,48 +65,70 @@ void _print_dec(unsigned long long x, bool neg)
 
 void _print_err(err_t e)
 {
-	if (e == Error_SUCCESS)
+	switch (e) {
+	case Error_SUCCESS:
 		kprintf("SUCCESS");
-	else if (e == Error_EMPTY)
+		break;
+	case Error_EMPTY:
 		kprintf("Error_EMPTY");
-	else if (e == Error_SRC_EMPTY)
+		break;
+	case Error_SRC_EMPTY:
 		kprintf("Error_SRC_EMPTY");
-	else if (e == Error_DST_OCCUPIED)
+		break;
+	case Error_DST_OCCUPIED:
 		kprintf("Error_DIST_OCCUPIED");
-	else if (e == Error_INVALID_INDEX)
+		break;
+	case Error_INVALID_INDEX:
 		kprintf("Error_INVALID_INDEX");
-	else if (e == Error_INVALID_DERIVATION)
+		break;
+	case Error_INVALID_DERIVATION:
 		kprintf("Error_INVALID_DERIVATION");
-	else if (e == Error_INVALID_MONITOR)
+		break;
+	case Error_INVALID_MONITOR:
 		kprintf("Error_INVALID_MONITOR");
-	else if (e == Error_INVALID_PID)
+		break;
+	case Error_INVALID_PID:
 		kprintf("Error_INVALID_PID");
-	else if (e == Error_INVALID_STATE)
+		break;
+	case Error_INVALID_STATE:
 		kprintf("Error_INVALID_STATE");
-	else if (e == Error_INVALID_PMP)
+		break;
+	case Error_INVALID_PMP:
 		kprintf("Error_INVALID_PMP");
-	else if (e == Error_INVALID_SLOT)
+		break;
+	case Error_INVALID_SLOT:
 		kprintf("Error_INVALID_SLOT");
-	else if (e == Error_INVALID_SOCKET)
+		break;
+	case Error_INVALID_SOCKET:
 		kprintf("Error_INVALID_SOCKET");
-	else if (e == Error_INVALID_SYSCALL)
+		break;
+	case Error_INVALID_SYSCALL:
 		kprintf("Error_INVALID_SYSCALL");
-	else if (e == Error_INVALID_REGISTER)
+		break;
+	case Error_INVALID_REGISTER:
 		kprintf("Error_INVALID_REGISTER");
-	else if (e == Error_INVALID_CAPABILITY)
+		break;
+	case Error_INVALID_CAPABILITY:
 		kprintf("Error_INVALID_CAPABILITY");
-	else if (e == Error_NO_RECEIVER)
+		break;
+	case Error_NO_RECEIVER:
 		kprintf("Error_NO_RECEIVER");
-	else if (e == Error_PREEMPTED)
+		break;
+	case Error_PREEMPTED:
 		kprintf("Error_PREEMPTED");
-	else if (e == Error_TIMEOUT)
+		break;
+	case Error_TIMEOUT:
 		kprintf("Error_TIMEOUT");
-	else if (e == Error_SUSPENDED)
+		break;
+	case Error_SUSPENDED:
 		kprintf("Error_SUSPENDED");
-	else if (e == Error_CONTINUE)
+		break;
+	case Error_CONTINUE:
 		kprintf("CONTINUE");
-	else
+		break;
+	default:
 		kprintf("UNKNOWN");
+	}
 }
 
 void kprintf(const char *fmt, ...)

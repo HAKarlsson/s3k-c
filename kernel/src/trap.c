@@ -7,8 +7,6 @@
 
 extern kstate_t ks;
 
-
-
 proc_t *trap_handler(proc_t *proc, u64 mcause, u64 mtval)
 {
 	Trap_handler(&ks, mcause, mtval);

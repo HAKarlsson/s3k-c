@@ -12,7 +12,7 @@ typedef u64 cap_t;
 typedef u64 pid_t;
 typedef u64 rwx_t;
 
-typedef i64 err_t;
+typedef enum Error_err_t err_t;
 
 typedef struct Types_kstate kstate_t;
 
