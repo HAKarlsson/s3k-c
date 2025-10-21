@@ -14,10 +14,10 @@
 #include <stddef.h>
 
 // Let pid run on hartid, begin-end.
-kstate_t *Sched_update(kstate_t *ks, u64 pid, u64 end, u64 from, u64 to);
+void Sched_update(u64 pid, u64 end, u64 from, u64 to);
 
 // Delete scheduling at hartid, begin-end.
-kstate_t *Sched_delete(kstate_t *ks, u64 from, u64 to);
+void Sched_delete(u64 from, u64 to);
 
 /**
  * @brief Find the next process to schedule.
@@ -27,4 +27,4 @@ kstate_t *Sched_delete(kstate_t *ks, u64 from, u64 to);
  */
 proc_t *sched(void);
 
-kstate_t *Sched_sched(kstate_t *ks);
+void Sched_sched();

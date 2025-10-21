@@ -9,7 +9,7 @@ extern kstate_t ks;
 
 proc_t *trap_handler(proc_t *proc, u64 mcause, u64 mtval)
 {
-	Trap_handler(&ks, mcause, mtval);
+	Trap_handler(mcause, mtval);
 
 	// If the same process is scheduled, return it.
 	if (ks.next_pid == proc->pid) {
@@ -21,7 +21,7 @@ proc_t *trap_handler(proc_t *proc, u64 mcause, u64 mtval)
 
 	// If the next process is Proc_pid_NULL, fetch the next process to run.
 	while (ks.next_pid == Proc_pid_NULL)
-		Sched_fetch(&ks);
+		Sched_fetch();
 
 	// Prepare the next process to run.
 	proc_t *next_proc = proc_get(ks.next_pid);

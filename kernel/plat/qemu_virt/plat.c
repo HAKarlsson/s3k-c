@@ -28,7 +28,7 @@ void kernel_init(void)
 
 	proc_init(0x80010000);
 
-	Pmp_load(&ks, Cap_ops_cap_idx_from_pid(0, 0), 0);
+	Pmp_load(Cap_ops_cap_idx_from_pid(0, 0), 0);
 }
 
 void kputc(char c)

@@ -1,0 +1,4 @@
+module Kernel
+
+#unique
+decl ks : Types::kstate

@@ -2,7 +2,7 @@
 
 #include "preempt.h"
 
-typedef kstate_t *(*revoke_handler)(kstate_t *, u64);
+typedef void (*revoke_handler)(u64);
 
 static const revoke_handler revoke_handlers[CAPTY_COUNT] = {
     NULL,
@@ -14,20 +14,20 @@ static const revoke_handler revoke_handlers[CAPTY_COUNT] = {
     Cap_ops_revoke_socket,
 };
 
-kstate_t *Cap_ops_revoke(kstate_t *ks, u64 parent)
+void Cap_ops_revoke(u64 parent)
 {
-	u64 pcap = ks->ctable[parent];
+	u64 pcap = Kernel_ks->ctable[parent];
 	u64 type = Cap_get_type(pcap);
 	if (type == Cap_CAPTY_NONE) {
-		ks->errcode = Error_EMPTY;
-		return ks;
+		Kernel_ks->errcode = Error_EMPTY;
+		return;
 	}
 	do {
-		revoke_handlers[type](ks, parent);
-	} while (ks->errcode == Error_CONTINUE && !preempt());
+		revoke_handlers[type](parent);
+	} while (Kernel_ks->errcode == Error_CONTINUE && !preempt());
 
-	if (ks->errcode == Error_CONTINUE) {
-		ks->errcode = Error_PREEMPTED;
+	if (Kernel_ks->errcode == Error_CONTINUE) {
+		Kernel_ks->errcode = Error_PREEMPTED;
 	}
-	return ks;
+	return;
 }

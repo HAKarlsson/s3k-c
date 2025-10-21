@@ -6,6 +6,7 @@
 #include "proc.h"
 
 kstate_t ks;
+kstate_t *const Kernel_ks = &ks;
 
 // Capabilities
 #define TOTAL_CAP_CNT (S3K_PROC_CNT * S3K_CAP_CNT)
@@ -88,11 +89,11 @@ void kstate_init(const cap_t init_caps[], size_t size)
 		cap_t cap = init_caps[i];
 		if (Cap_get_type(cap) == Cap_CAPTY_NONE)
 			continue;
-		Ctable_insert(&ks, i, cap, prev);
+		Ctable_insert(i, cap, prev);
 		prev = i;
 		if (Cap_get_type(cap) == Cap_CAPTY_TIME) {
 			// Update the time slots when inserting a time capability
-			Sched_update(&ks, 0, Cap_time_get_upp(cap),
+			Sched_update(0, Cap_time_get_upp(cap),
 				     Cap_time_get_mrk(cap),
 				     Cap_time_get_upp(cap));
 		}

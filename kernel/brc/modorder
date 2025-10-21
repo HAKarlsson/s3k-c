@@ -1,1 +1,1 @@
-config.br error.br machine.br types.br cap.br util.br vreg.br ctable.br proc.br ptable.br sched.br cap_ops.br pmp.br monitor.br channels.br ipc.br exception.br interrupt.br message.br syscall.br trap.br
+config.br error.br machine.br types.br cap.br util.br vreg.br ctable.br proc.br ptable.br sched.br cap_ops.br pmp.br monitor.br channels.br ipc.br exception.br interrupt.br message.br syscall.br trap.br kernel.br
