@@ -38,7 +38,7 @@ defn do_send(ks: kstate, sender_pid: u64, sock_idx: u64) : kstate =
   let is_yield = Cap::socket_get_mode(sock) == ipc_YIELD in
   let ks = do_send_check(ks, is_server(sock), is_yield, chan_idx, curr_time, timeout) in
   match ks.errcode with
-  | Error::SUCCESS =>
+    case Error::SUCCESS =>
       let recv_pid = Vreg::read(ks, Vreg::vR0) in
       let ks = Ptable::proc_reg_write(ks, recv_pid, REG_T0, Error::SUCCESS as u64) in
       let ks = Ptable::proc_reg_write(ks, recv_pid, REG_A0, Cap::socket_get_tag(sock)) in
@@ -61,9 +61,9 @@ defn do_send(ks: kstate, sender_pid: u64, sock_idx: u64) : kstate =
       else 
         let ks = Ptable::proc_timeout_set(ks, recv_pid, 0UL) in
         Ptable::release(ks, recv_pid)
-  | Error::PREEMPTED =>
+    case Error::PREEMPTED =>
       ks.next_pid <- Proc::pid_NULL
-  | _ => ks
+    case _ => ks
   end
 
 defn do_recv(ks: kstate, sock_idx: u64, buf_idx: u64, recv_pid: pid_t) : kstate =
@@ -140,11 +140,11 @@ defn call(ks: kstate, sock_idx: u64) : kstate =
     let ks = ks.next_pid <- Proc::pid_NULL in
     let ks = do_send(ks, client_pid, sock_idx) in
     match ks.errcode with
-    | Error::SUCCESS =>
+      case Error::SUCCESS =>
         do_recv(ks, sock_idx, buf_idx, client_pid)
-    | Error::NO_RECEIVER =>
+      case Error::NO_RECEIVER =>
         ks.next_pid <- client_pid
-    | _ => ks
+      case _ => ks
     end
 
 (* Entry points *)

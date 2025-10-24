@@ -8,42 +8,42 @@ import Types
 defn proc_reg_read(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
   let proc = ks.ptable[pid] in
   match reg with
-  | REG_PC => proc.pc
-  | REG_RA => proc.ra
-  | REG_SP => proc.sp
-  | REG_GP => proc.gp
-  | REG_TP => proc.tp
-  | REG_T0 => proc.t0
-  | REG_T1 => proc.t1
-  | REG_T2 => proc.t2
-  | REG_S0 => proc.s0
-  | REG_S1 => proc.s1
-  | REG_A0 => proc.a0
-  | REG_A1 => proc.a1
-  | REG_A2 => proc.a2
-  | REG_A3 => proc.a3
-  | REG_A4 => proc.a4
-  | REG_A5 => proc.a5
-  | REG_A6 => proc.a6
-  | REG_A7 => proc.a7
-  | REG_S2 => proc.s2
-  | REG_S3 => proc.s3
-  | REG_S4 => proc.s4
-  | REG_S5 => proc.s5
-  | REG_S6 => proc.s6
-  | REG_S7 => proc.s7
-  | REG_S8 => proc.s8
-  | REG_S9 => proc.s9
-  | REG_S10 => proc.s10
-  | REG_S11 => proc.s11
-  | REG_T3 => proc.t3
-  | REG_T4 => proc.t4
-  | REG_T5 => proc.t5
-  | REG_T6 => proc.t6
-  | REG_TPC => proc.tpc
-  | REG_TSP => proc.tsp
-  | REG_EPC => proc.epc
-  | REG_ESP => proc.esp
+    case REG_PC => proc.pc
+    case REG_RA => proc.ra
+    case REG_SP => proc.sp
+    case REG_GP => proc.gp
+    case REG_TP => proc.tp
+    case REG_T0 => proc.t0
+    case REG_T1 => proc.t1
+    case REG_T2 => proc.t2
+    case REG_S0 => proc.s0
+    case REG_S1 => proc.s1
+    case REG_A0 => proc.a0
+    case REG_A1 => proc.a1
+    case REG_A2 => proc.a2
+    case REG_A3 => proc.a3
+    case REG_A4 => proc.a4
+    case REG_A5 => proc.a5
+    case REG_A6 => proc.a6
+    case REG_A7 => proc.a7
+    case REG_S2 => proc.s2
+    case REG_S3 => proc.s3
+    case REG_S4 => proc.s4
+    case REG_S5 => proc.s5
+    case REG_S6 => proc.s6
+    case REG_S7 => proc.s7
+    case REG_S8 => proc.s8
+    case REG_S9 => proc.s9
+    case REG_S10 => proc.s10
+    case REG_S11 => proc.s11
+    case REG_T3 => proc.t3
+    case REG_T4 => proc.t4
+    case REG_T5 => proc.t5
+    case REG_T6 => proc.t6
+    case REG_TPC => proc.tpc
+    case REG_TSP => proc.tsp
+    case REG_EPC => proc.epc
+    case REG_ESP => proc.esp
   end
 
 defn proc_reg_read_noinline(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
@@ -55,42 +55,42 @@ defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let proc = ptable[pid] in
   let proc =
     match reg with
-    | REG_PC => proc.pc <- val
-    | REG_RA => proc.sp <- val
-    | REG_SP => proc.sp <- val
-    | REG_GP => proc.gp <- val
-    | REG_TP => proc.tp <- val
-    | REG_T0 => proc.t0 <- val
-    | REG_T1 => proc.t1 <- val
-    | REG_T2 => proc.t2 <- val
-    | REG_S0 => proc.s0 <- val
-    | REG_S1 => proc.s1 <- val
-    | REG_A0 => proc.a0 <- val
-    | REG_A1 => proc.a1 <- val
-    | REG_A2 => proc.a2 <- val
-    | REG_A3 => proc.a3 <- val
-    | REG_A4 => proc.a4 <- val
-    | REG_A5 => proc.a5 <- val
-    | REG_A6 => proc.a6 <- val
-    | REG_A7 => proc.a7 <- val
-    | REG_S2 => proc.s2 <- val
-    | REG_S3 => proc.s3 <- val
-    | REG_S4 => proc.s4 <- val
-    | REG_S5 => proc.s5 <- val
-    | REG_S6 => proc.s6 <- val
-    | REG_S7 => proc.s7 <- val
-    | REG_S8 => proc.s8 <- val
-    | REG_S9 => proc.s9 <- val
-    | REG_S10 => proc.s10 <- val
-    | REG_S11 => proc.s11 <- val
-    | REG_T3 => proc.t3 <- val
-    | REG_T4 => proc.t4 <- val
-    | REG_T5 => proc.t5 <- val
-    | REG_T6 => proc.t6 <- val
-    | REG_TPC => proc.tpc <- val
-    | REG_TSP => proc.tsp <- val
-    | REG_EPC => proc.epc <- val
-    | REG_ESP => proc.esp <- val
+      case REG_PC => proc.pc <- val
+      case REG_RA => proc.sp <- val
+      case REG_SP => proc.sp <- val
+      case REG_GP => proc.gp <- val
+      case REG_TP => proc.tp <- val
+      case REG_T0 => proc.t0 <- val
+      case REG_T1 => proc.t1 <- val
+      case REG_T2 => proc.t2 <- val
+      case REG_S0 => proc.s0 <- val
+      case REG_S1 => proc.s1 <- val
+      case REG_A0 => proc.a0 <- val
+      case REG_A1 => proc.a1 <- val
+      case REG_A2 => proc.a2 <- val
+      case REG_A3 => proc.a3 <- val
+      case REG_A4 => proc.a4 <- val
+      case REG_A5 => proc.a5 <- val
+      case REG_A6 => proc.a6 <- val
+      case REG_A7 => proc.a7 <- val
+      case REG_S2 => proc.s2 <- val
+      case REG_S3 => proc.s3 <- val
+      case REG_S4 => proc.s4 <- val
+      case REG_S5 => proc.s5 <- val
+      case REG_S6 => proc.s6 <- val
+      case REG_S7 => proc.s7 <- val
+      case REG_S8 => proc.s8 <- val
+      case REG_S9 => proc.s9 <- val
+      case REG_S10 => proc.s10 <- val
+      case REG_S11 => proc.s11 <- val
+      case REG_T3 => proc.t3 <- val
+      case REG_T4 => proc.t4 <- val
+      case REG_T5 => proc.t5 <- val
+      case REG_T6 => proc.t6 <- val
+      case REG_TPC => proc.tpc <- val
+      case REG_TSP => proc.tsp <- val
+      case REG_EPC => proc.epc <- val
+      case REG_ESP => proc.esp <- val
     end
   in
   let ptable = ptable[pid] <- proc in
@@ -130,7 +130,7 @@ defn proc_timeout_set(ks: kstate, pid: pid_t, val: word_t) : kstate =
 defn acquire(ks: kstate, pid: pid_t) : kstate =
   let expected = ks.ptable[pid].state in
   let desired = Proc::psf_BUSY in
-  if (expected & (Proc::psf_BUSY lor Proc::psf_SUSPENDED)) as bool then
+  if (expected & (Proc::psf_BUSY | Proc::psf_SUSPENDED)) as bool then
     Vreg::write(ks, Vreg::vR0, false as u64)
   else if Machine::time_read(ks.mc) < ks.ptable[pid].timeout then
     Vreg::write(ks, Vreg::vR0, false as u64)
@@ -158,7 +158,7 @@ defn release(ks: kstate, pid: pid_t) : kstate =
   ks.ptable <- ptable
 
 defn ipc_acquire(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
-  let expected = Proc::psf_BLOCKED lor (chan_idx << 48UL) in
+  let expected = Proc::psf_BLOCKED | (chan_idx << 48UL) in
   let desired = Proc::psf_BUSY in
   if ks.ptable[pid].state == expected then
     let ks = proc_state_set(ks, pid, desired) in
@@ -168,7 +168,7 @@ defn ipc_acquire(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
     ks.errcode <- Error::NO_RECEIVER
 
 defn ipc_wait(ks: kstate, pid: pid_t, chan_idx: u64) : kstate =
-  proc_state_set(ks, pid, (chan_idx << 48UL) lor Proc::psf_BLOCKED lor Proc::psf_BUSY)
+  proc_state_set(ks, pid, (chan_idx << 48UL) | Proc::psf_BLOCKED | Proc::psf_BUSY)
 
 defn is_suspended(ks: kstate, pid: pid_t) : bool =
   Proc::is_suspended(ks.ptable[pid])

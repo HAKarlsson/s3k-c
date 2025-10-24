@@ -15,7 +15,7 @@ defn pid_NULL : pid_t = -1UL
 
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in
-  let proc = proc.state <- (proc.state lor psf_SUSPENDED) in
+  let proc = proc.state <- (proc.state | psf_SUSPENDED) in
   if (prev & psf_BLOCKED) as bool then
     let proc = proc.state <- psf_SUSPENDED in
     proc.t0 <- (Error::SUSPENDED as u64)
@@ -44,7 +44,7 @@ defn pmp_avail(proc: proc_t, slot: pmp_slot_t) : bool =
 defn pmp_load(proc: proc_t, slot: pmp_slot_t, rwx: pmp_slot_t, addr: napot_t) : proc_t =
   let pcfg = proc.pmpcfg in
   let paddr = proc.pmpaddr in
-  let pcfg = pcfg[slot] <- (rwx lor 0x18UL) in
+  let pcfg = pcfg[slot] <- (rwx | 0x18UL) in
   let paddr = paddr[slot] <- addr in
   let proc = proc.pmpcfg <- pcfg in
   proc.pmpaddr <- paddr

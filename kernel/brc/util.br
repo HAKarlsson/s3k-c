@@ -7,7 +7,7 @@ defn pmp_napot_decode_size(addr: u64) : u64 =
   (((addr + 1UL) ^ addr) + 1UL) << 2UL
 
 defn pmp_napot_encode(base: u64, size: u64) : u64 =
-  (base lor (size / 2UL - 1UL)) >> 2UL
+  (base | (size / 2UL - 1UL)) >> 2UL
 
 defn tag_block_to_addr(tag: u64, block: u64) : u64 =
   (tag << Config::mem_MAX_BLOCK_SIZE) + (block << Config::mem_MIN_BLOCK_SIZE)
