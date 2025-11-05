@@ -207,6 +207,18 @@ defn derive_monitor(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
 
 (* Channel capability *)
 
+defn sock_clear(ks: kstate, sock_idx: u64, pid: pid_t) : kstate =
+  let sock = ks.ctable[sock_idx] in
+  let chan_idx = Cap::socket_get_chan(sock) in 
+  if Cap::socket_get_tag(sock) == 0UL then
+    let ks = Channels::server_set(ks, chan_idx, Proc::pid_NULL) in
+    let ks = Channels::client_set(ks, chan_idx, Proc::pid_NULL) in
+    Channels::buf_idx_set(ks, chan_idx, Config::s3k_CAP_CNT + 1UL)
+  else if ks.channels[chan_idx].client == pid then
+    Channels::client_set(ks, chan_idx, Proc::pid_NULL)
+  else
+    ks
+
 defn delete_channel(ks: kstate, cidx: u64) : kstate =
   Ctable::delete(ks, cidx)
 
@@ -251,6 +263,7 @@ defn revoke_channel(ks: kstate, parent: u64) : kstate =
       && (Cap::socket_get_chan(ccap) <= Cap::channel_get_upp(pcap))
   then
     let ks = Ctable::delete(ks, child) in
+    let ks = sock_clear(ks, child, cap_pid(child)) in
     ks.errcode <- Error::CONTINUE
   else
     let pcap = Cap::channel_set_mrk(pcap, Cap::channel_get_low(pcap)) in
@@ -260,7 +273,9 @@ defn revoke_channel(ks: kstate, parent: u64) : kstate =
 (* Socket capability *)
 
 defn delete_socket(ks: kstate, cidx: u64) : kstate =
-  Ctable::delete(ks, cidx)
+  let ks = sock_clear(ks, cidx, cap_pid(cidx)) in
+  let ks = Ctable::delete(ks, cidx) in
+  ks.errcode <- Error::SUCCESS
 
 defn derive_socket(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
   let cap = ks.ctable[src] in
@@ -278,7 +293,18 @@ defn derive_socket(ks: kstate, src: u64, dst: u64, ncap: cap_t) : kstate =
 
 #export
 defn revoke_socket(ks: kstate, parent: u64) : kstate =
-  ks.errcode <- Error::SUCCESS
+  let pcap = ks.ctable[parent] in
+  let child = ks.cnext[parent] in
+  let ccap = ks.ctable[child] in
+  if (Cap::get_type(ccap) == Cap::CAPTY_SOCKET
+      && Cap::socket_get_chan(pcap) == Cap::socket_get_chan(ccap)
+      && Cap::socket_get_tag(pcap) == 0UL)
+  then
+    let ks = Ctable::delete(ks, child) in
+    let ks = sock_clear(ks, child, cap_pid(child)) in
+    ks.errcode <- Error::CONTINUE
+  else
+    ks.errcode <- Error::SUCCESS
 
 defn ipc_move_hook(ks: kstate, src: u64, dst: u64) : kstate =
   let cap = ks.ctable[src] in

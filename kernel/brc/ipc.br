@@ -213,15 +213,3 @@ defn cap_sock_sendrecv(ks: kstate, sock_idx: u64) : kstate =
     replyrecv(ks, sock_idx)
   else
     call(ks, sock_idx)
-
-(* defn cap_sock_clear(ks: kstate, sock_idx: u64, pid: pid_t) : kstate =
-  let sock = ks.ctable[sock_idx] in
-  let chan_idx = Cap::socket_get_chan(sock) in 
-  if Cap::socket_get_tag(sock) == 0UL then
-    let ks = Channels::server_set(ks, chan_idx, Proc::pid_NULL) in
-    let ks = Channels::client_set(ks, chan_idx, Proc::pid_NULL) in
-    Channels::buf_idx_set(ks, chan_idx, Config::s3k_CAP_CNT + 1UL)
-  else if ks.channels[chan_idx].client == pid then
-    Channels::client_set(ks, chan_idx, Proc::pid_NULL)
-  else
-    ks *)
