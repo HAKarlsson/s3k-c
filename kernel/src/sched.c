@@ -27,7 +27,7 @@ void Sched_delete(u64 from, u64 to)
 
 proc_t *sched(void)
 {
-	Sched_fetch(&ks);
+	Sched_fetch();
 	return proc_get(ks.next_pid);
 }
 
