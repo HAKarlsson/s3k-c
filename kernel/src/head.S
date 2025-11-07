@@ -2,7 +2,7 @@
 #include "offsets.h"
 #include "csr.h"
 
-.extern init_kernel
+.extern kernel_init
 .extern sched
 .extern trap_entry
 .extern trap_exit
