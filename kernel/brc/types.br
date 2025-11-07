@@ -67,7 +67,7 @@ type proc_t = {
   ecause: word_t; eval: word_t;
   servtime: word_t;
   (* =============== *)
-  pmpcfg: array u64;
+  pmpcfg: u64;
   pmpaddr: array u64;
   pid: pid_t;
   timeout: u64;

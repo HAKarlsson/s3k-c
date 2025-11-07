@@ -12,6 +12,14 @@ defn pmp_napot_encode(base: u64, size: u64) : u64 =
 defn tag_block_to_addr(tag: u64, block: u64) : u64 =
   (tag << Config::mem_MAX_BLOCK_SIZE) + (block << Config::mem_MIN_BLOCK_SIZE)
 
+defn pmpcfg_get(cfg: u64, i: u64) : u64 =
+  (cfg >> (i * 8UL)) & 0xFFUL
+
+defn pmpcfg_set(cfg: u64, i: u64, val: u64) : u64 =
+  let val_i = (val & 0xFFUL) << (i * 8UL) in
+  let mask_i = ~(0xFFUL << (i * 8UL)) in
+  (cfg & mask_i) | val_i
+
 defn cap_mk_time(low: u64, upp: u64) : Types::cap_t =
   Cap::mk_time(low, low, upp)
 

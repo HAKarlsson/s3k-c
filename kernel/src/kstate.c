@@ -18,7 +18,7 @@ static u64 _ctable[TOTAL_CAP_CNT];
 static u64 _vregs[8];
 
 // Process table
-static u64 _pmpcfg[S3K_PROC_CNT][S3K_PMP_CNT];
+static u64 _pmpcfg[S3K_PROC_CNT];
 static u64 _pmpaddr[S3K_PROC_CNT][S3K_PMP_CNT];
 static struct Types_proc_t _procs[S3K_PROC_CNT];
 static struct Types_proc_t *_ptable[S3K_PROC_CNT];
@@ -62,7 +62,7 @@ void kstate_init(const cap_t init_caps[], size_t size)
 	for (unsigned int i = 0; i < ARRAY_SIZE(_ptable); i++) {
 		_ptable[i] = &_procs[i];
 		for (unsigned int j = 0; j < S3K_PMP_CNT; j++) {
-			_pmpcfg[i][j] = 0;
+			_pmpcfg[i] = 0;
 			_pmpaddr[i][j] = 0;
 		}
 		_procs[i].pmpaddr = _pmpaddr[i];

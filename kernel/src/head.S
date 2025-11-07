@@ -61,8 +61,7 @@ head_exit:
 	la	t0,trap_entry
 	csrw	mtvec,t0
 	csrw	mscratch,0
-	call	sched
-	call    proc_pmp_sync
+	call    sched_initial
 	tail	trap_resume
 
 __hang:

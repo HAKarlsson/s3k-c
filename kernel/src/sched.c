@@ -27,7 +27,15 @@ void Sched_delete(u64 from, u64 to)
 
 proc_t *sched(void)
 {
-	// Process to schedule
-	Sched_fetch();
+	Sched_fetch(&ks);
 	return proc_get(ks.next_pid);
+}
+
+proc_t *sched_initial(void)
+{
+	Sched_fetch();
+	proc_t *proc = proc_get(ks.next_pid);
+	proc_pmp_sync(proc);
+	rtc_timeout_set(0, proc->timeout);
+	return proc;
 }
