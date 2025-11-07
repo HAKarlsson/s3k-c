@@ -2,7 +2,6 @@
 #include "offsets.h"
 
 .globl trap_entry
-.globl trap_resume
 .globl trap_return
 
 .type trap_entry, @function
@@ -65,27 +64,7 @@ trap_entry:
 	csrr	a1,mcause
 	csrr	a2,mtval
 	call	trap_handler
-
-trap_resume:
-	ld	s0,PROC_PMPADDR0(a0)
-	ld	s1,PROC_PMPADDR1(a0)
-	ld	s2,PROC_PMPADDR2(a0)
-	ld	s3,PROC_PMPADDR3(a0)
-	ld	s4,PROC_PMPADDR4(a0)
-	ld	s5,PROC_PMPADDR5(a0)
-	ld	s6,PROC_PMPADDR6(a0)
-	ld	s7,PROC_PMPADDR7(a0)
-	ld	s8,PROC_PMPCFG0(a0)
-	csrw	pmpaddr0,s0
-	csrw	pmpaddr1,s1
-	csrw	pmpaddr2,s2
-	csrw	pmpaddr3,s3
-	csrw	pmpaddr4,s4
-	csrw	pmpaddr5,s5
-	csrw	pmpaddr6,s6
-	csrw	pmpaddr7,s7
-	csrw	pmpcfg0,s8
-
+	
 trap_return:
 	ld	t0,PROC_PC(a0)
 	ld	t1,PROC_A0(a0)

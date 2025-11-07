@@ -61,8 +61,8 @@ head_exit:
 	la	t0,trap_entry
 	csrw	mtvec,t0
 	csrw	mscratch,0
-	call	sched
-	tail	trap_resume
+	call 	sched_initial
+	tail	trap_return
 
 __hang:
 	wfi
