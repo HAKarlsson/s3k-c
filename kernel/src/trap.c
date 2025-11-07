@@ -26,7 +26,7 @@
 static proc_t *_handler(proc_t *proc, uint64_t mcause, uint64_t mtval)
 {
 	if (mcause == 8LL) {
-		return syscall_handler(proc);
+		return Profiling_syscall_handler(proc);
 	} else if ((int64_t)mcause < 0LL) {
 		return interrupt_handler(proc, mcause, mtval);
 	} else {

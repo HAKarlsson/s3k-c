@@ -16,6 +16,8 @@
 
 #include <stdbool.h>
 
+static uint64_t syscall_handler_rdcycle[S3K_PROC_CNT] = {0};
+
 static bool _valid_idx(cidx_t idx)
 {
 	return idx < S3K_CAP_CNT;
@@ -48,6 +50,9 @@ proc_t *_get_info(proc_t *const p, const sys_args_t *args)
 		break;
 	case 2:
 		p->regs.a0 = rtc_timeout_get(csrr_mhartid());
+		break;
+	case 3:
+		p->regs.a0 = syscall_handler_rdcycle[p->pid];
 		break;
 	default:
 		p->regs.a0 = 0;
@@ -505,4 +510,13 @@ proc_t *syscall_handler(proc_t *proc)
 		proc->regs.t0 = ERR_INVALID_SYSCALL;
 		return proc;
 	}
+}
+
+proc_t *Profiling_syscall_handler(proc_t *proc)
+{
+	uint64_t begin = csrr_mcycle();
+	proc_t *res = syscall_handler(proc);
+	uint64_t end = csrr_mcycle();
+	syscall_handler_rdcycle[proc->pid] = end - begin;
+	return res;
 }
