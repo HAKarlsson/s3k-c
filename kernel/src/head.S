@@ -2,11 +2,9 @@
 #include "offsets.h"
 #include "csr.h"
 
-.extern init_kernel
-.extern sched
+.extern kernel_init
 .extern trap_entry
-.extern trap_exit
-.extern trap_resume
+.extern trap_return
 
 .section .text.init,"ax",@progbits
 
