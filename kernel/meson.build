@@ -30,7 +30,6 @@ sources = files(
     'src/head.S',
     'src/interrupt.c',
     'src/kernel.c',
-    'src/kprint.c',
     'src/proc.c',
     'src/rtc.c',
     'src/sched.c',
