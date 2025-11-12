@@ -35,8 +35,10 @@ static proc_t *_exception_trap_return(proc_t *proc)
 
 proc_t *exception_handler(proc_t *proc, uint64_t mcause, uint64_t mtval)
 {
+#ifndef NDEBUG
 	kprintf("Exception: mcause: %X, mtval: %X, mepc: %X\n", mcause, mtval,
 		proc->regs.pc);
+#endif
 	while (1) {
 	}
 	if (mcause == ILLEGAL_INSTRUCTION

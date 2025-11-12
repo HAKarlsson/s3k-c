@@ -125,9 +125,9 @@ proc_t *sched(void)
 
 proc_t *sched_initial(void)
 {
-    // Process to schedule
-    proc_t* proc = sched_fetch();
-    proc_pmp_sync(proc);
-    rtc_timeout_set(0, proc->timeout);
-    return proc;
+	// Process to schedule
+	proc_t *proc = sched_fetch();
+	proc_pmp_sync(proc);
+	rtc_timeout_set(0, proc->timeout);
+	return proc;
 }
