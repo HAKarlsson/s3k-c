@@ -11,9 +11,9 @@ extern char __uart[];
 
 void kernel_init(void)
 {
-	#ifndef NDEBUG
+#ifndef NDEBUG
 	kputs("# Kernel init");
-	#endif
+#endif
 	cap_t init_caps[6];
 	cap_mk_pmp(&init_caps[0], pmp_napot_encode(0x80010000, 0x10000),
 		   MEM_RWX);
@@ -23,9 +23,9 @@ void kernel_init(void)
 	cap_mk_monitor(&init_caps[4], 0, S3K_PROC_CNT);
 	cap_mk_channel(&init_caps[5], 0, S3K_CHAN_CNT);
 	for (int i = 0; i < ARRAY_SIZE(init_caps); ++i) {
-		#ifndef NDEBUG
+#ifndef NDEBUG
 		kprintf("# init_caps[%d]: ", i);
-		#endif
+#endif
 		cap_print(&init_caps[i]);
 		kprintf("\n");
 	}

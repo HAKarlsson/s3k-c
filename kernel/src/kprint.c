@@ -1,10 +1,11 @@
 #include "kprint.h"
 
+#include "cap/util.h"
+#include "pmp.h"
+#include "types.h"
+
 #include <stdarg.h>
 #include <stdbool.h>
-#include "types.h"
-#include "pmp.h"
-#include "cap/util.h"
 
 extern void kputc(char c);
 

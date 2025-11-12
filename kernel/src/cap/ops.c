@@ -265,7 +265,7 @@ err_t cap_derive_memory(cte_t src, cap_t *cap, cte_t dst, const cap_t *new_cap)
 		return SUCCESS;
 	}
 
-	uint64_t pmp_addr = (new_cap->raw >> 16); 
+	uint64_t pmp_addr = (new_cap->raw >> 16);
 	word_t pmp_base = pmp_napot_decode_base(pmp_addr);
 	word_t pmp_size = pmp_napot_decode_size(pmp_addr);
 	uint64_t mem_mrk, mem_end;
