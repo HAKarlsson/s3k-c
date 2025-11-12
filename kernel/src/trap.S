@@ -108,6 +108,11 @@ trap_return:
 
 	mret
 
+#ifdef NDEBUG
+__hang:
+	// Hang forever.
+	j 	__hang
+#elif
 __hang:
 	// Hang forever.
 	la 	a0, my_string
@@ -118,3 +123,4 @@ __hang:
 
 my_string:
 	.string "Hang!\n"
+#endif
