@@ -24,13 +24,17 @@ sources = files(
     'src/csr.c',
     'src/head.S',
     'src/kstate.c',
+    'src/machine.c',
     'src/proc.c',
     'src/rtc.c',
     'src/sched.c',
-    'src/machine.c',
     'src/trap.S',
     'src/trap.c',
 )
+
+if get_option('debug') == true
+    sources += files('src/cap/util.c', 'src/kprint.c')
+endif
 
 c_args = [
     '-ffreestanding',
@@ -40,19 +44,10 @@ c_args = [
     '-include',
     platdir / 'config.h',
     '-include',
-    's3k_conf.h'
+    's3k_conf.h',
 ]
 
-if get_option('debug') == true
-    sources += files('src/kprint.c', 'src/cap/util.c')
-endif
-
-link_args = [
-    '-nostartfiles',
-    '-nostdlib',
-    '-T',
-    platdir / 'linker.ld'
-]
+link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld']
 
 compiler = meson.get_compiler('c')
 

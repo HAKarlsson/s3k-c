@@ -20,6 +20,8 @@ gen_test_runner = unity_proj.get_variable('gen_test_runner')
 test_runner = gen_test_runner.process('main.c')
 
 test_sources = files(
+    '../../lib/src/s3k.c'
+,
     '../src/cap/ops.c',
     '../src/cap/ops.c',
     '../src/cap/util.c',
@@ -29,7 +31,6 @@ test_sources = files(
     '../src/sched.c',
     'main.c',
     'utils.c',
-    '../../lib/src/s3k.c'
 ) + test_runner + libkernel_c
 
 s3k_test = executable(
