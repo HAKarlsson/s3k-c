@@ -46,10 +46,9 @@ c_args = [
     platdir / 'config.h',
     '-include',
     's3k_conf.h',
-    '-flto',
 ]
 
-link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld', '-flto']
+link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld']
 
 if get_option('debug') == true
     sources += files('src/kprint.c')
