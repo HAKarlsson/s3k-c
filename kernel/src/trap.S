@@ -108,17 +108,19 @@ trap_resume:
 
 	mret
 
+#ifdef NDEBUG
 __hang:
 	// Hang forever.
-	#ifndef NDEBUG
+	j 	__hang
+#else
+__hang:
+	// Hang forever.
 	la 	a0, my_string
 	call	kputs
-	#endif
 	j 	__hang
 
 .section .data
 
-#ifndef NDEBUG
 my_string:
 	.string "Hang!\n"
 #endif
