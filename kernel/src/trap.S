@@ -133,7 +133,7 @@ trap_return:
 __hang:
 	// Hang forever.
 	j 	__hang
-#elif
+#else
 __hang:
 	// Hang forever.
 	la 	a0, my_string
