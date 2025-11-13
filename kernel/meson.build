@@ -38,10 +38,6 @@ sources = files(
     'src/trap.c',
 )
 
-if get_option('debug') == true
-    sources += files('src/kprint.c')
-endif
-
 include_directories = include_directories('include')
 
 c_args = [
@@ -53,6 +49,13 @@ c_args = [
 ]
 
 link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld']
+
+if get_option('debug') == true
+    sources += files('src/kprint.c')
+else
+    c_args += ['-flto']
+    link_args += ['-flto']
+endif
 
 elf = executable(
     's3k.elf',
