@@ -3,6 +3,7 @@
 #include "kprint.h"
 #include "libkernel.h"
 #include "macro.h"
+#include "sched.h"
 
 kstate_t ks;
 kstate_t *const Kernel_ks = &ks;
