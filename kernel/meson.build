@@ -20,7 +20,7 @@ endif
 
 sources = files(
     platdir / 'plat.c',
-    'src/cap/ops.c',
+    'src/cap_ops.c',
     'src/csr.c',
     'src/head.S',
     'src/kstate.c',
@@ -46,7 +46,7 @@ c_args = [
 link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld']
 
 if get_option('debug') == true
-    sources += files('src/cap/util.c', 'src/kprint.c')
+    sources += files('src/kprint.c')
 else
     c_args += ['-flto']
     link_args += ['-flto']

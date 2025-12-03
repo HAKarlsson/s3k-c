@@ -1,4 +1,4 @@
-#include "cap/ops.h"
+#include "cap_ops.h"
 
 #include "libkernel.h"
 #include "preempt.h"
