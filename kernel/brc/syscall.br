@@ -36,6 +36,7 @@ enum kinfo {
   Info_pid,
   Info_time,
   Info_timeout,
+  Info_profiling,
 }
 
 (* Helper functions *)
@@ -63,15 +64,15 @@ defn set_proc_retval(ks: kstate, pid: pid_t, val: word_t) : kstate =
 defn get_info(ks: kstate, pid: pid_t, info: u64) : kstate =
   let ks = Machine::time_sync(ks) in
   let val =
-    if info > 2UL then 0UL
+    if info > 3UL then 0UL
     else
       match (info as kinfo) with
         Info_pid => pid
-        Info_time =>
-          Machine::time_read(ks.mc)
+        Info_time => Machine::time_read(ks.mc)
         Info_timeout =>
-          let hartid = Machine::csrr_mhartid(ks.mc) in
-          Machine::timeout_read(ks.mc, hartid)
+          let hid = Machine::csrr_mhartid(ks.mc) in
+          Machine::timeout_read(ks.mc, hid)
+        Info_profiling => ks.syshandler_profiling[pid]
       end
   in
   let ks = set_proc_retval(ks, pid, val) in
@@ -322,6 +323,7 @@ defn sock_sendrecv(ks: kstate, pid: pid_t, sock_idx: u64, cap_idx: u64, send_cap
 
 (* Handler entry point *)
 
+@export
 defn handler(ks: kstate, pid: pid_t) : kstate =
   let call = Ptable::proc_reg_read(ks, pid, Reg_t0) in
   if call >= 25UL then
@@ -470,3 +472,5 @@ defn handler(ks: kstate, pid: pid_t) : kstate =
         let data3 = Ptable::proc_reg_read(ks, pid, Reg_a6) in
         sock_sendrecv(ks, pid, sock_idx, cap_idx, send_cap as bool, data0, data1, data2, data3)
     end
+
+decl profiling_handler : (@write kstate, pid_t) -> kstate

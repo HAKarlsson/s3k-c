@@ -113,4 +113,6 @@ record kstate {
   errcode: Error::err_t,
   (* Next process to run *)
   next_pid: pid_t,
+  (* Syscall::handler profiling data *)
+  syshandler_profiling: #[u64; Config::s3k_proc_cnt],
 }
