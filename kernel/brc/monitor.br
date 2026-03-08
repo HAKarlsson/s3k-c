@@ -71,7 +71,8 @@ defn cap_yield(ks: kstate, midx: u64, pid: pid_t) : kstate =
 defn cap_reg_read(ks: kstate, midx: u64, pid: pid_t, reg: reg_t) : kstate =
   let err = check(ks, midx, pid, true) in
   if err == Error::Success then
-    let val = Ptable::proc_reg_read_noinline(ks, pid, reg) in
+    (* let val = Ptable::proc_reg_read_noinline(ks, pid, reg) in *)
+    let val = Ptable::proc_reg_read(ks, pid, reg) in
     let ks = Vreg::write(ks, Vreg::vR0, val) in
     ks.errcode <- Error::Success
   else
@@ -80,7 +81,8 @@ defn cap_reg_read(ks: kstate, midx: u64, pid: pid_t, reg: reg_t) : kstate =
 defn cap_reg_write(ks: kstate, midx: u64, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let err = check(ks, midx, pid, true) in
   if err == Error::Success then
-    let ks = Ptable::proc_reg_write_noinline(ks, pid, reg, val) in
+    (* let ks = Ptable::proc_reg_write_noinline(ks, pid, reg, val) in *)
+    let ks = Ptable::proc_reg_write(ks, pid, reg, val) in
     ks.errcode <- Error::Success
   else
     ks.errcode <- err

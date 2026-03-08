@@ -13,12 +13,23 @@ defn reg_count : u64 = 32UL
 (* Encodes an unexisting process. *)
 defn pid_null : pid_t = -1UL
 
+@inline
+defn reg_read(proc: proc_t, reg: reg_t) : word_t =
+  proc.regs[reg as u64]
+
+@inline
+defn reg_write(proc: proc_t, reg: reg_t, v: word_t) : proc_t =
+  let regs = proc.regs in
+  let regs = regs[reg as u64] <- v in
+  proc.regs <- regs
+
 defn suspend(proc: proc_t) : proc_t =
   let prev = proc.state in
   let proc = proc.state <- (proc.state | psf_suspended) in
   if (prev & psf_blocked) as bool then
     let proc = proc.state <- psf_suspended in
-    proc.t0 <- (Error::Suspended as u64)
+    (* proc.t0 <- (Error::Suspended as u64) *)
+    reg_write(proc, Reg_t0, Error::Suspended as u64)
   else
     proc
 

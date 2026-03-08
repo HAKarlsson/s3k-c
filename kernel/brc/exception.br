@@ -13,27 +13,37 @@ defn instr_uret : u64 = 0x00200073UL
 defn delegate(ks: kstate, pid: pid_t, mcause: u64, mtval: u64) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
-  let proc = { proc with
+  let proc = Proc::reg_write(proc, Reg_epc, Proc::reg_read(proc, Reg_sp)) in
+  let proc = Proc::reg_write(proc, Reg_esp, Proc::reg_read(proc, Reg_sp)) in
+  let proc = Proc::reg_write(proc, Reg_pc, Proc::reg_read(proc, Reg_sp)) in
+  let proc = Proc::reg_write(proc, Reg_sp, Proc::reg_read(proc, Reg_sp)) in
+  let proc = { proc with ecause <- mcause, eval <- mtval, } in
+  (* let proc = { proc with
     ecause <- mcause,
     eval <- mtval,
     epc <- proc.pc,
     esp <- proc.sp,
     pc <- proc.tpc,
     sp <- proc.tsp,
-  } in
+  } in *)
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 
 defn trap_return(ks: kstate, pid: pid_t) : kstate =
   let ptable = ks.ptable in
   let proc = ptable[pid] in
-  let proc = { proc with
+  let proc = Proc::reg_write(proc, Reg_pc, Proc::reg_read(proc, Reg_sp)) in
+  let proc = Proc::reg_write(proc, Reg_sp, Proc::reg_read(proc, Reg_sp)) in
+  let proc = Proc::reg_write(proc, Reg_epc, 0UL) in
+  let proc = Proc::reg_write(proc, Reg_esp, 0UL) in
+  let proc = proc.ecause <- 0UL in
+  (* let proc = { proc with
     pc <- proc.epc,
     sp <- proc.esp,
     ecause <- 0UL,
     epc <- 0UL,
     esp <- 0UL,
-  } in
+  } in *)
   let ptable = ptable[pid] <- proc in
   ks.ptable <- ptable
 

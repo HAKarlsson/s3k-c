@@ -14,7 +14,8 @@ void proc_init(word_t payload)
 		ks.ptable[i].state = Proc_psf_suspended;
 	}
 	ks.ptable[0].state = 0;
-	ks.ptable[0].pc = (word_t)payload;
+	// ks.ptable[0].pc = (word_t)payload;
+	ks.ptable[0].regs[(u64)Types_Reg_pc] = (word_t)payload;
 }
 
 proc_t *proc_get_opt(pid_t pid)

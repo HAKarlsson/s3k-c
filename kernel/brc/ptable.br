@@ -4,10 +4,10 @@ import Types
 
 @all_static
 
-@always_inline
+@inline
 defn proc_reg_read(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
-  let proc = ks.ptable[pid] in
-  match reg with
+  Proc::reg_read(ks.ptable[pid], reg)
+  (* match reg with
     Reg_pc => proc.pc
     Reg_ra => proc.ra
     Reg_sp => proc.sp
@@ -44,14 +44,19 @@ defn proc_reg_read(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
     Reg_tsp => proc.tsp
     Reg_epc => proc.epc
     Reg_esp => proc.esp
-  end
+  end *)
 
-defn proc_reg_read_noinline(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
-  proc_reg_read(ks, pid, reg)
+(* defn proc_reg_read_noinline(ks: kstate, pid: pid_t, reg: reg_t) : word_t =
+  proc_reg_read(ks, pid, reg) *)
 
-@always_inline
+@inline
 defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   let ptable = ks.ptable in
+  let proc = ptable[pid] in
+  let proc = Proc::reg_write(proc, reg, val) in
+  let ptable = ptable[pid] <- proc in
+  ks.ptable <- ptable
+  (* let ptable = ks.ptable in
   let proc = ptable[pid] in
   let proc =
     match reg with
@@ -94,7 +99,7 @@ defn proc_reg_write(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
     end
   in
   let ptable = ptable[pid] <- proc in
-  ks.ptable <- ptable
+  ks.ptable <- ptable *)
 
 defn proc_reg_write_noinline(ks: kstate, pid: pid_t, reg: reg_t, val: word_t) : kstate =
   proc_reg_write(ks, pid, reg, val)

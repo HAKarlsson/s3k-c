@@ -81,7 +81,7 @@ defn reg_read(ks: kstate, pid: pid_t, reg: reg_t) : kstate =
   if !valid_reg(reg) then
     set_proc_err(ks, pid, Error::Invalid_register)
   else
-    let val = Ptable::proc_reg_read_noinline(ks, pid, reg) in
+    let val = Ptable::proc_reg_read(ks, pid, reg) in
     let ks = set_proc_retval(ks, pid, val) in
     set_proc_err(ks, pid, Error::Success)
 
