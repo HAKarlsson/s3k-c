@@ -41,6 +41,7 @@ c_args = [
     platdir / 'config.h',
     '-include',
     's3k_conf.h',
+    '-Wno-return-type',
 ]
 
 link_args = ['-nostartfiles', '-nostdlib', '-T', platdir / 'linker.ld']
