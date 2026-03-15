@@ -28,6 +28,7 @@ sources = files(
     'src/proc.c',
     'src/rtc.c',
     'src/sched.c',
+    'src/syscall.c',
     'src/trap.S',
     'src/trap.c',
 )

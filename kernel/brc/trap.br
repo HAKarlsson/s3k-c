@@ -4,7 +4,7 @@ import Types
 
 defn handler(ks: kstate, mcause : u64, mtval: u64) : kstate =
   if mcause == 8UL then
-    Syscall::handler(ks, ks.next_pid)
+    Syscall::profiling_handler(ks, ks.next_pid)
   else if (mcause as i64) < 0L then
     Interrupt::handler(ks, ks.next_pid)
   else
