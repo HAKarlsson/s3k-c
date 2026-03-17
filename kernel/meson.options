@@ -1,3 +1,3 @@
 option('platdir', type : 'string', value : '', description : 'Platform directory', yield : true)
-option('plat', type : 'combo', choices : ['qemu_virt', 'cheshire'], value : 'qemu_virt', description : 'Platform name')
+option('plat', type : 'combo', choices : ['qemu_virt', 'cheshire'], value : 'qemu_virt', description : 'Platform name', yield : true)
 option('s3k_conf', type : 'string', value : 's3k_conf.h', description : 'S3K configuration header file', yield : true)
