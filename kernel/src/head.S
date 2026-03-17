@@ -33,9 +33,10 @@ head_entry:
 	csrw	mscratch,0
 	csrw	mie,0
 	csrw	satp,0
-	csrw	mcounteren,0xf
+
 	csrw	mcountinhibit,0x0
-	csrw	scounteren,0xf
+	csrs	mcounteren,0xf
+	csrs	scounteren,0xf
 
 	// Set trap entry.
 	la	t0,__hang
