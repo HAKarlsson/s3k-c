@@ -3,10 +3,8 @@
 #include "csr.h"
 
 .extern kernel_init
-.extern sched
 .extern trap_entry
-.extern trap_exit
-.extern trap_resume
+.extern trap_return
 
 .section .text.init,"ax",@progbits
 
@@ -61,8 +59,8 @@ head_exit:
 	la	t0,trap_entry
 	csrw	mtvec,t0
 	csrw	mscratch,0
-	call	sched
-	tail	trap_resume
+	call 	sched_initial
+	tail	trap_return
 
 __hang:
 	wfi
