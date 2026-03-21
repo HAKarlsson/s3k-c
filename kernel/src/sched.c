@@ -58,46 +58,6 @@ static void slot_info_get(uint64_t slot, slot_info_t *si)
 	si->length = entry & 0xFF;
 }
 
-// static proc_t *sched_fetch(uint64_t slot)
-// {
-// 	slot_info_t si;
-// 	// Get time slot information
-// 	slot_info_get(slot, &si);
-
-// 	// If length = 0, then slice is deleted.
-// 	if (si.length == 0)
-// 		return NULL;
-
-// 	proc_t *proc = proc_get(si.pid);
-
-// 	// Try to acquire the process.
-// 	if (!proc_acquire(proc))
-// 		return NULL;
-
-// 	// Get the process.
-// 	proc->timeout = (slot + si.length) * S3K_SLOT_LEN;
-// 	return proc;
-// }
-
-// proc_t *sched(void)
-// {
-// 	// Hart ID
-// 	uint64_t hart = csrr_mhartid();
-// 	// Time slot
-// 	uint64_t slot;
-// 	// Process to schedule
-// 	proc_t *proc;
-// 	rtc_timeout_set(hart, (uint64_t)-1);
-
-// 	do {
-// 		slot = rtc_time_get() / S3K_SLOT_LEN;
-// 		// Try schedule process
-// 		proc = sched_fetch(slot);
-// 	} while (!proc);
-// 	rtc_timeout_set(hart, proc->timeout);
-// 	return proc;
-// }
-
 proc_t *sched_fetch(void)
 {
 	slot_info_t si;
